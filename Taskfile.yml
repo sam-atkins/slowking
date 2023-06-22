@@ -1,0 +1,43 @@
+# https://taskfile.dev
+version: '3'
+
+tasks:
+  default:
+    desc: Build and run the application
+    cmds:
+      - task: build
+      - task: up
+
+  build:
+    desc: Build the application via docker-compose
+    cmds:
+      - docker-compose build
+
+  up:
+    desc: Run the application via docker-compose
+    cmds:
+      - docker-compose up
+
+  request:
+    desc: Make a request to the application using HTTPie
+    cmds:
+      - http POST localhost:8080/api/v1/events/publish @/Users/sam/code/fastapi-pubsub/tests/data/payload.json
+
+  local-env:
+    desc: Create local virtual environment
+    internal: true
+    cmds:
+      - python3 -m venv .venv
+
+  install:
+    desc: Install dependencies (locally, not in Docker)
+    cmds:
+      - task: local-env
+      - source .venv/bin/activate
+      - poetry install
+
+  test:
+    desc: Run tests (locally, not in Docker)
+    cmds:
+      - source .venv/bin/activate
+      - pytest -vv

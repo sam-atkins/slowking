@@ -1,0 +1,40 @@
+version: '3.9'
+
+services:
+  api-eventbus:
+    build: .
+    container_name: api-eventbus
+    command: api
+    volumes:
+      - ./src:/home/app/src
+    ports:
+      - 8080:8080
+    restart: on-failure
+    depends_on:
+      - redis
+      - event-consumer
+
+  event-consumer:
+    build: .
+    container_name: event-consumer
+    command: event-consumer
+    depends_on:
+      - redis
+    environment:
+      REDIS_HOST: "redis-broker"
+      REDIS_PORT: 63791
+    volumes:
+      - ./src:/home/app/src
+
+  redis:
+    container_name: redis-broker
+    image: redis:7
+    restart: always
+    command: --port 63791
+    ports:
+      - 63791:63791
+
+volumes:
+  api:
+  event-consumer:
+  redis:
