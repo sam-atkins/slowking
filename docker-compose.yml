@@ -1,9 +1,9 @@
 version: '3.9'
 
 services:
-  api-eventbus:
+  slowking-api-eventbus:
     build: .
-    container_name: api-eventbus
+    container_name: slowking-api-eventbus
     command: api
     volumes:
       - ./src:/home/app/src
@@ -12,11 +12,11 @@ services:
     restart: on-failure
     depends_on:
       - redis
-      - event-consumer
+      - slowking-event-consumer
 
-  event-consumer:
+  slowking-event-consumer:
     build: .
-    container_name: event-consumer
+    container_name: slowking-event-consumer
     command: event-consumer
     depends_on:
       - redis
@@ -35,6 +35,6 @@ services:
       - 63791:63791
 
 volumes:
-  api:
-  event-consumer:
+  slowking-api-eventbus:
+  slowking-api-event-consumer:
   redis:
