@@ -9,7 +9,9 @@ This is a proof of concept benchmarking app/tool with an event-driven architectu
     - [Commands](#commands)
       - [`start_benchmark`](#start_benchmark)
     - [Events](#events)
+    - [Domain Models](#domain-models)
     - [Database Tables](#database-tables)
+    - [Unit of Work](#unit-of-work)
 
 ## Design Principles
 
@@ -99,6 +101,12 @@ Payload (WIP):
 - All docs uploaded (a check to see if all docs are uploaded)
 - Create benchmark report (simply log or if time create a csv, maybe take the code from Geo?)
 
+### Domain Models
+
+- Benchmark
+  - includes reference to a benchmark-instance
+  - includes reference to documents to upload and measure upload latency
+
 ### Database Tables
 
 - benchmark
@@ -123,3 +131,10 @@ Payload (WIP):
   - doc upload start timestamp (utc)
   - doc upload end timestamp (utc)
   - doc upload total time (calculated property)
+
+### Unit of Work
+
+- Abstract & Repository
+  - benchmarks
+- Unit of Work
+  - e.g. `self.benchmarks = repository.SqlAlchemyRepository(self.session)`
