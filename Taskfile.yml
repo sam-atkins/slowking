@@ -21,7 +21,7 @@ tasks:
   request:
     desc: Make a request to the application using HTTPie
     cmds:
-      - http POST localhost:8080/api/v1/events/publish @/Users/sam/code/fastapi-pubsub/tests/data/payload.json
+      - http POST localhost:8091/api/v1/events/publish @/Users/sam/code/fastapi-pubsub/tests/data/payload.json
 
   local-env:
     desc: Create local virtual environment
