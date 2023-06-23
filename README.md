@@ -1,6 +1,6 @@
 # slowking
 
-This is a proof of concept. It is an attempt to create a benchmarking app/tool with an event-driven architecture.
+This is a proof of concept benchmarking app/tool with an event-driven architecture.
 
 - [slowking](#slowking)
   - [Design Principles](#design-principles)
@@ -33,7 +33,6 @@ There are also various tasks in the Taskfile:
 task --list
 ```
 
-
 ## Design Notes
 
 ### Commands
@@ -59,11 +58,37 @@ Payload (WIP):
 }
 ```
 
+- start_benchmark
+- update_document (with upload start or end time)
+  - omit events: updated_document
+  - this is instrumentation in the Eigen app, http requests to the `slowking`
+- create_report
+
 ### Events
 
 > Events are broadcast by an actor to all interested listeners.
 > We often use events to spread the knowledge about successful commands.
 > Events capture facts about things that happened in the past.
+
+- created_benchmark
+  - handlers: get_artifacts, create_project
+  - omit events: created_project
+- created_project
+  - handlers: upload_documents
+
+- updated_document
+  - handlers: check_all_docs_processed
+  - omit events: completed_benchmark
+
+- completed_benchmark
+  - handlers: generate_report
+  - omit events: completed_report
+
+- completed_report
+  - handlers: send_notification
+
+- send_error_notification
+  - handlers: send_notification
 
 - get artifacts (for POC, have them locally and just use them)
 - login to instance? (mechanics, think is probably just part of creating a project)
@@ -77,19 +102,24 @@ Payload (WIP):
 ### Database Tables
 
 - benchmark
-  - id | uuid
+  - id | uuid (pk)
   - name
   - type e.g. latency
   - infra e.g. docker, k8s or local
   - project (doc_type)
   - documents (ids) ?
+- benchmark-instance (get_or_create | get/update if username/pw are different)
+  - id (pk)
+  - fk to benchmark
+  - url
   - username
   - password
 - document
   - (used to measure upload latency)
+  - id (pk)
   - fk to benchmark
-  - (fk to project ?)
-  - id
+  - (fk to project | benchmark.project.id)
+  - eigenapp doc.id
   - doc upload start timestamp (utc)
   - doc upload end timestamp (utc)
-  - doc upload total time
+  - doc upload total time (calculated property)
