@@ -7,7 +7,6 @@ This is a proof of concept benchmarking app/tool with an event-driven architectu
   - [Setup](#setup)
   - [Design Notes](#design-notes)
     - [Commands](#commands)
-      - [`start_benchmark`](#start_benchmark)
     - [Events](#events)
     - [Domain Models](#domain-models)
     - [Database Tables](#database-tables)
@@ -41,13 +40,13 @@ task --list
 
 > Commands are sent by one actor to another specific actor with the expectation that a particular thing will happen as a result.
 
-#### `start_benchmark`
+Commands will be HTTP requests from outside systems e.g. a request to start a benchmark, a request to add a document upload start or end time.
 
-This is the start point and requires a dedicated endpoint.
+Each command will have a dedicated endpoint.
 
-`/api/v1/benchmarks/start`
+For example, `start_benchmark` is a command with the endpoint `/api/v1/benchmarks/start`.
 
-Payload (WIP):
+An example Payload (WIP) would be:
 
 ```json
 {
@@ -80,7 +79,7 @@ Payload (WIP):
 
 - updated_document
   - handlers: check_all_docs_processed
-  - omit events: completed_benchmark
+  - omit events: completed_benchmark (conditional: only if all docs are processed)
 
 - completed_benchmark
   - handlers: generate_report
