@@ -17,7 +17,7 @@ class EventChannelEnum(StrEnum):
 
 
 class Event(BaseModel):
-    pass
+    channel: str
 
 
 class BenchmarkCreated(Event):
