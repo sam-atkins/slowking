@@ -1,5 +1,5 @@
 import logging
-from typing import Callable, Type
+from typing import Callable
 
 from src.domain import commands, events
 
