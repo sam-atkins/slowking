@@ -1,9 +1,10 @@
 """
 Domain Events
 """
-from dataclasses import dataclass
 from enum import StrEnum
 from typing import Literal
+
+from pydantic import BaseModel
 
 
 class EventChannelEnum(StrEnum):
@@ -15,18 +16,16 @@ class EventChannelEnum(StrEnum):
         return [channel.value for channel in list(cls)]
 
 
-class Event:
+class Event(BaseModel):
     pass
 
 
-@dataclass
 class CustomerCreated(Event):
     channel: Literal[EventChannelEnum.CREATED_CUSTOMER]
     first_name: str
     surname: str
 
 
-@dataclass
 class CustomerGreeted(Event):
     channel: Literal[EventChannelEnum.GREETED_CUSTOMER]
     first_name: str

@@ -1,11 +1,10 @@
 """
 Domain Commands
 """
-from dataclasses import dataclass
 from enum import StrEnum
 from typing import Literal
 
-from pydantic import SecretStr
+from pydantic import BaseModel, SecretStr
 
 
 class CommandChannelEnum(StrEnum):
@@ -17,12 +16,10 @@ class CommandChannelEnum(StrEnum):
         return [channel.value for channel in list(cls)]
 
 
-class Command:
+class Command(BaseModel):
     pass
 
 
-# TODO can we make these pydantic basemodels instead? need to convert when publishing
-@dataclass
 class CreateBenchmark(Command):
     channel: Literal[CommandChannelEnum.CREATE_BENCHMARK]
     name: str
@@ -31,11 +28,9 @@ class CreateBenchmark(Command):
     target_url: str
     target_release_version: str
     username: str
-    # password: str  # TODO: make this a secret str?
     password: SecretStr
 
 
-@dataclass
 class CreateCustomer(Command):
     channel: Literal[CommandChannelEnum.CREATE_CUSTOMER]
     first_name: str

@@ -73,7 +73,7 @@ async def start_benchmark(payload: BenchmarkPayload, background_tasks: Backgroun
         target_url=payload.target_url,
         target_release_version=payload.target_release_version,
         username=payload.username,
-        password=payload.password,
+        password=payload.password, # type: ignore
     )
     background_tasks.add_task(publish_to_bus, cmd)
     return Response(status_code=HTTPStatus.ACCEPTED)

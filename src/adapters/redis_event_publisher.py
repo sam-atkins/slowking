@@ -1,6 +1,5 @@
 import json
 import logging
-from dataclasses import asdict
 from typing import Union
 
 import redis
@@ -26,7 +25,7 @@ def publish(message: Union[events.Event, dict]):
 
     """
     if isinstance(message, events.Event):
-        message = asdict(message)  # type: ignore
+        message = message.dict()
 
     channel = message.get("channel")
     logger.info(f"publish channel_from_message: {channel}")
