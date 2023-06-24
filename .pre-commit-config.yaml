@@ -19,12 +19,11 @@ repos:
   - id: blacken-docs
 - repo: https://github.com/charliermarsh/ruff-pre-commit
   # must run before Black and other formatting tools.
-  # Ruff version.
-  rev: 'v0.0.250'
+  rev: 'v0.0.275'
   hooks:
   - id: ruff
     args: [--fix, --exit-non-zero-on-fix]
 - repo: https://github.com/psf/black
-  rev: '22.12.0'
+  rev: '23.3.0'
   hooks:
   - id: black
