@@ -6,6 +6,13 @@ from src.domain import commands, events
 logger = logging.getLogger(__name__)
 
 
+def create_benchmark(cmd: commands.CreateBenchmark, publish: Callable):
+    logger.info("=== Called CreateBenchmarkHandler CMD ===")
+    logger.info(f"CreateBenchmarkHandler cmd: {cmd}")
+    # TODO use UOW domain model to create a benchmark in the db
+    # TODO emit event: BenchmarkCreated
+
+
 def create_customer(cmd: commands.CreateCustomer, publish: Callable):
     logger.info("=== Called CreateCustomerHandler CMD ===")
     logger.info(f"CreateCustomerHandler cmd: {cmd}")

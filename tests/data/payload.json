@@ -1,5 +1,9 @@
 {
-    "channel": "create_customer",
-    "first_name": "Sam",
-    "surname": "Atkins"
+    "name": "Benchmark Latency for release 5.11.0-rc1",
+    "benchmark_type": "benchmark__latency",
+    "target_infra": "docker__local",
+    "target_url": "localhost:3000",
+    "target_release_version": "5.11.0-rc1",
+    "username": "samadmin",
+    "password": "HelloWorld00"
 }

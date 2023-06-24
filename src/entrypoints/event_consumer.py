@@ -24,6 +24,7 @@ def main():
 
 
 def assign_channel_message_to_handler(message, bus):
+    # TODO refactor to assign events to handlers
     channel = message["channel"]
     logger.info(
         f"assign_channel_message_to_handler channel {channel} with message: {message}"
@@ -41,6 +42,9 @@ def assign_channel_message_to_handler(message, bus):
             return
 
 
+# TODO eg rename to avoid confusion between handlers and handle_ fns
+# assign_create_customer_event
+# publish_create_customer_event_to_bus
 def handle_create_customer(message_payload, bus):
     logger.info(f"handle_create_customer with payload: {message_payload}")
     cmd = commands.CreateCustomer(

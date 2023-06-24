@@ -18,6 +18,7 @@ def bootstrap(
     #     orm.start_mappers()
 
     injected_command_handlers: dict[Type[commands.Command], Callable] = {
+        commands.CreateBenchmark: lambda c: handlers.create_benchmark(c, publish),
         commands.CreateCustomer: lambda c: handlers.create_customer(c, publish),
     }
 
