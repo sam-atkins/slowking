@@ -18,10 +18,15 @@ tasks:
     cmds:
       - docker-compose up
 
-  request:
-    desc: Make a request to the application using HTTPie
+  start:
+    desc: Make a request to the application using HTTPie to start a benchmark
     cmds:
       - http POST localhost:8091/api/v1/benchmarks/start @./tests/data/payload.json
+
+  event:
+    desc: Make a request to the application using HTTPie with a test event
+    cmds:
+      - http POST localhost:8091/api/v1/events/publish @./tests/data/event.json
 
   local-env:
     desc: Create local virtual environment
