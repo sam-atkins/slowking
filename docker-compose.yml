@@ -21,13 +21,13 @@ services:
     depends_on:
       - redis
     environment:
-      REDIS_HOST: "redis-broker"
+      REDIS_HOST: "slowking-redis-broker"
       REDIS_PORT: 63791
     volumes:
       - ./src:/home/app/src
 
   redis:
-    container_name: redis-broker
+    container_name: slowking-redis-broker
     image: redis:7
     restart: always
     command: --port 63791

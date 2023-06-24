@@ -8,7 +8,7 @@ logger = getLogger(__name__)
 
 
 def get_redis_host_and_port():
-    host = os.environ.get("REDIS_HOST", "redis-broker")
+    host = os.environ.get("REDIS_HOST", "slowking-redis-broker")
     port = os.environ.get("REDIS_PORT", 63791)
     return {"host": host, "port": port}
 
