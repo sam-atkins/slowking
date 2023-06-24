@@ -28,8 +28,8 @@ class BenchmarkCreated(Event):
     target_url: str
     target_release_version: str
     username: str
-    # password: SecretStr  # FIXME: Object of type SecretStr is not JSON serializable
-    password: str
+    # Use .get_secret_value() method to see the secret's content
+    password: SecretStr
 
 
 class ProjectCreated(Event):

@@ -1,6 +1,4 @@
-import json
 import logging
-from typing import Union
 
 import redis
 
@@ -10,23 +8,11 @@ from src.domain import events
 logger = logging.getLogger(__name__)
 
 
-def publish(message: Union[events.Event, dict]):
+def publish(event: events.Event):
     """
-    Publishes a message to a channel.
-    Args:
-        message (Union[events.Event, dict]): the message to publish. The channel is
-        extracted from the message e.g.
-
-            {
-                "channel": "customer_created",
-                "first_name": "John",
-                "surname": "Doe",
-            }
-
+    Publishes an event to the redis broker
     """
-    if isinstance(message, events.Event):
-        message = message.dict()
-
+    message = event.dict()
     channel = message.get("channel")
     logger.info(f"publish channel_from_message: {channel}")
 
@@ -36,6 +22,5 @@ def publish(message: Union[events.Event, dict]):
         return
 
     logging.info(f"publishing: channel={channel}, message={message}")
-
     broker = redis.Redis(**config.get_redis_host_and_port())
-    broker.publish(channel=channel, message=json.dumps(message))
+    broker.publish(channel=channel, message=event.json())

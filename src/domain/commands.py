@@ -28,5 +28,4 @@ class CreateBenchmark(Command):
     target_url: str
     target_release_version: str
     username: str
-    # password: SecretStr # FIXME: Object of type SecretStr is not JSON serializable
-    password: str
+    password: SecretStr
