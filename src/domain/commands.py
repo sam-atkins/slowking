@@ -28,10 +28,5 @@ class CreateBenchmark(Command):
     target_url: str
     target_release_version: str
     username: str
-    password: SecretStr
-
-
-class CreateCustomer(Command):
-    channel: Literal[CommandChannelEnum.CREATE_CUSTOMER]
-    first_name: str
-    surname: str
+    # password: SecretStr # FIXME: Object of type SecretStr is not JSON serializable
+    password: str

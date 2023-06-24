@@ -71,7 +71,7 @@ An example Payload (WIP) would be:
 > We often use events to spread the knowledge about successful commands.
 > Events capture facts about things that happened in the past.
 
-- created_benchmark
+- BenchmarkCreated
   - handlers: get_artifacts, create_project
   - omit events: created_project
 - created_project

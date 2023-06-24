@@ -4,12 +4,12 @@ Domain Events
 from enum import StrEnum
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, SecretStr
 
 
 class EventChannelEnum(StrEnum):
-    CREATED_CUSTOMER = "created_customer"
-    GREETED_CUSTOMER = "greeted_customer"
+    BENCHMARK_CREATED = "benchmark_created"
+    PROJECT_CREATED = "project_created"
 
     @classmethod
     def get_event_channels(cls):
@@ -20,13 +20,19 @@ class Event(BaseModel):
     pass
 
 
-class CustomerCreated(Event):
-    channel: Literal[EventChannelEnum.CREATED_CUSTOMER]
-    first_name: str
-    surname: str
+class BenchmarkCreated(Event):
+    channel: Literal[EventChannelEnum.BENCHMARK_CREATED]
+    name: str
+    benchmark_type: str
+    target_infra: str
+    target_url: str
+    target_release_version: str
+    username: str
+    # password: SecretStr  # FIXME: Object of type SecretStr is not JSON serializable
+    password: str
 
 
-class CustomerGreeted(Event):
-    channel: Literal[EventChannelEnum.GREETED_CUSTOMER]
-    first_name: str
-    surname: str
+class ProjectCreated(Event):
+    channel: Literal[EventChannelEnum.PROJECT_CREATED]
+    target_url: str
+    project_id: str  # or int?

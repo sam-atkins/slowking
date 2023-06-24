@@ -19,15 +19,16 @@ def bootstrap(
 
     injected_command_handlers: dict[Type[commands.Command], Callable] = {
         commands.CreateBenchmark: lambda c: handlers.create_benchmark(c, publish),
-        commands.CreateCustomer: lambda c: handlers.create_customer(c, publish),
     }
 
     injected_event_handlers: dict[Type[events.Event], list[Callable]] = {
-        events.CustomerCreated: [
-            lambda e: handlers.send_customer_email_event(e),
-            lambda e: handlers.add_customer_to_model(e),
+        events.BenchmarkCreated: [
+            lambda e: handlers.get_artifacts(e),
+            lambda e: handlers.create_project(e),
         ],
-        events.CustomerGreeted: [lambda e: handlers.set_customer_greeted(e)],
+        events.ProjectCreated: [
+            lambda e: handlers.upload_documents(e),
+        ],
     }
 
     return messagebus.MessageBus(

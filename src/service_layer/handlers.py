@@ -7,47 +7,34 @@ logger = logging.getLogger(__name__)
 
 
 def create_benchmark(cmd: commands.CreateBenchmark, publish: Callable):
-    logger.info("=== Called CreateBenchmarkHandler CMD ===")
-    logger.info(f"CreateBenchmarkHandler cmd: {cmd}")
+    logger.info("=== Called create_benchmark handler ===")
+    logger.info(f"create_benchmark cmd: {cmd}")
     # TODO use UOW domain model to create a benchmark in the db
-    # TODO emit event: BenchmarkCreated
-
-
-def create_customer(cmd: commands.CreateCustomer, publish: Callable):
-    logger.info("=== Called CreateCustomerHandler CMD ===")
-    logger.info(f"CreateCustomerHandler cmd: {cmd}")
-    logger.info(f"CreateCustomerHandler received first_name: {cmd.first_name}")
-    logger.info(f"CreateCustomerHandler received surname: {cmd.surname}")
 
     publish(
-        events.CustomerCreated(
-            channel=events.EventChannelEnum.CREATED_CUSTOMER,
-            first_name=cmd.first_name,
-            surname=cmd.surname,
-        ),
+        events.BenchmarkCreated(
+            channel=events.EventChannelEnum.BENCHMARK_CREATED,
+            name=cmd.name,
+            benchmark_type=cmd.benchmark_type,
+            target_infra=cmd.target_infra,
+            target_url=cmd.target_url,
+            target_release_version=cmd.target_release_version,
+            username=cmd.username,
+            password=cmd.password,
+        )
     )
 
 
-def send_customer_email_event(event: events.CustomerGreeted):
-    logger.info("=== Called send_customer_email_event ===")
-    logger.info(f"send_customer_email_event event: {event}")
+def get_artifacts(event: events.BenchmarkCreated):
+    logger.info("=== Called get_artifacts ===")
+    logger.info(f"get_artifacts event: {event}")
 
 
-def add_customer_to_model(event: events.CustomerCreated):
-    logger.info("=== Called add_customer_to_model ===")
-    logger.info(f"add_customer_to_model event: {event}")
+def create_project(event: events.BenchmarkCreated):
+    logger.info("=== Called create_project ===")
+    logger.info(f"create_project event: {event}")
 
 
-def set_customer_greeted(event: events.CustomerGreeted):
-    logger.info("=== Called set_customer_greeted ===")
-    logger.info(f"set_customer_greeted event: {event}")
-
-
-COMMAND_HANDLERS: dict[Type[commands.Command], Callable] = {
-    commands.CreateCustomer: create_customer,
-}
-
-EVENT_HANDLERS = {
-    events.CustomerCreated: [send_customer_email_event, add_customer_to_model],
-    events.CustomerGreeted: [set_customer_greeted],
-}
+def upload_documents(event: events.ProjectCreated):
+    logger.info("=== Called upload_documents ===")
+    logger.info(f"upload_documents event: {event}")

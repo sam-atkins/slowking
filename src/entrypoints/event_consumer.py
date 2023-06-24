@@ -1,10 +1,11 @@
 import json
 import logging.config
+from typing import Any
 
 import redis
 
 from src import bootstrap, config
-from src.domain import commands, events
+from src.domain import events
 
 logger = logging.getLogger(__name__)
 
@@ -20,47 +21,39 @@ def main():
 
     for message in pubsub.listen():
         logger.info(f"Eventbus message received: {message}")
-        assign_channel_message_to_handler(message, bus)
+        assign_channel_event_to_handler(message, bus)
 
 
-def assign_channel_message_to_handler(message, bus):
-    # TODO refactor to assign events to handlers
+def assign_channel_event_to_handler(message: dict[Any, Any], bus):
+    """
+    Assigns a channel message event to a function which will call the message bus
+    """
     channel = message["channel"]
     logger.info(
-        f"assign_channel_message_to_handler channel {channel} with message: {message}"
+        f"assign_channel_event_to_handler channel {channel} with message: {message}"
     )
 
     payload = json.loads(message["data"])
     topic = str(channel, "utf-8")
     match topic:
-        case commands.CommandChannelEnum.CREATE_CUSTOMER.value:
-            handle_create_customer(payload, bus)
-        case events.EventChannelEnum.CREATED_CUSTOMER.value:
-            handle_customer_created(payload, bus)
+        case events.EventChannelEnum.BENCHMARK_CREATED.value:
+            publish_benchmark_created_event(payload, bus)
         case _:
-            logger.warning(f"Channel {channel} not found in EVENTS_MAPPING")
+            logger.warning(f"Channel {channel} not found for message: {message}")
             return
 
 
-# TODO eg rename to avoid confusion between handlers and handle_ fns
-# assign_create_customer_event
-# publish_create_customer_event_to_bus
-def handle_create_customer(message_payload, bus):
-    logger.info(f"handle_create_customer with payload: {message_payload}")
-    cmd = commands.CreateCustomer(
-        channel=commands.CommandChannelEnum.CREATE_CUSTOMER,
-        first_name=message_payload["first_name"],
-        surname=message_payload["surname"],
-    )
-    bus.handle(cmd)
-
-
-def handle_customer_created(message_payload, bus):
-    logger.info(f"handle_create_customer with payload: {message_payload}")
-    event = events.CustomerCreated(
-        channel=events.EventChannelEnum.CREATED_CUSTOMER,
-        first_name=message_payload["first_name"],
-        surname=message_payload["surname"],
+def publish_benchmark_created_event(message_payload, bus):
+    logger.info(f"publish_benchmark_created_event with payload: {message_payload}")
+    event = events.BenchmarkCreated(
+        channel=events.EventChannelEnum.BENCHMARK_CREATED,
+        name=message_payload["name"],
+        benchmark_type=message_payload["benchmark_type"],
+        target_infra=message_payload["target_infra"],
+        target_url=message_payload["target_url"],
+        target_release_version=message_payload["target_release_version"],
+        username=message_payload["username"],
+        password=message_payload["password"],
     )
     bus.handle(event)
 
