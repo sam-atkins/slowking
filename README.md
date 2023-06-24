@@ -59,11 +59,11 @@ An example Payload (WIP) would be:
 }
 ```
 
-- start_benchmark
-- update_document (with upload start or end time)
+- CreateBenchmark
+- UpdateDocument (with upload start or end time)
   - omit events: updated_document
   - this is instrumentation in the Eigen app, http requests to the `slowking`
-- create_report
+- CreateReport
 
 ### Events
 
@@ -77,18 +77,18 @@ An example Payload (WIP) would be:
 - created_project
   - handlers: upload_documents
 
-- updated_document
+- DocumentUpdated
   - handlers: check_all_docs_processed
   - omit events: completed_benchmark (conditional: only if all docs are processed)
 
-- completed_benchmark
+- BenchmarkCompleted
   - handlers: generate_report
   - omit events: completed_report
 
-- completed_report
+- ReportCompleted
   - handlers: send_notification
 
-- send_error_notification
+- ErrorStatus | ErrorOccurred
   - handlers: send_notification
 
 - get artifacts (for POC, have them locally and just use them)
