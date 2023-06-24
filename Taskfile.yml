@@ -40,6 +40,13 @@ tasks:
       - task: local-env
       - source .venv/bin/activate
       - poetry install
+      - pre-commit install
+
+  fmt:
+    desc: "Formats code using ruff and black"
+    cmds:
+      - ruff --fix .
+      - black .
 
   test:
     desc: Run tests (locally, not in Docker)
