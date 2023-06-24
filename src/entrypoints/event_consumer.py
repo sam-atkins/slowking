@@ -6,6 +6,7 @@ import redis
 
 from src import bootstrap, config
 from src.domain import events
+from src.service_layer import messagebus
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +25,9 @@ def main():
         assign_channel_event_to_handler(message, bus)
 
 
-def assign_channel_event_to_handler(message: dict[Any, Any], bus):
+def assign_channel_event_to_handler(
+    message: dict[Any, Any], bus: messagebus.MessageBus
+):
     """
     Assigns a channel message event to a function which will call the message bus
     """
