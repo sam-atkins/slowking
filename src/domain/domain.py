@@ -3,7 +3,10 @@ Benchmarking domain entities
 """
 from __future__ import annotations
 
-from typing import Optional
+from datetime import datetime
+from typing import NewType, Optional
+
+TimeStamp = NewType("TimeStamp", datetime)
 
 
 class Benchmark:
@@ -19,7 +22,7 @@ class Benchmark:
         self.benchmark_type = benchmark_type
         self.version_number = version_number
         self.target_instance = target_instance
-        # artifacts (documents) - get from config? or at least hard code for now
+        # artifacts (documents etc) - get from config? or hard code in the handler?
         self.project = project
 
     def __repr__(self):
@@ -33,39 +36,6 @@ class Benchmark:
 
     def __hash__(self):
         return hash((self.name, self.version_number))
-
-    def create(self):
-        """
-        Placeholder method to create a benchmark
-        """
-        self.version_number += 1
-        pass
-
-    def get(self):
-        """
-        Placeholder method to get a benchmark
-        """
-        pass
-
-    def update(self):
-        """
-        Placeholder method to update a benchmark
-        """
-        pass
-
-    def add_project(self, project: Project):
-        """
-        Placeholder method to add a project to a benchmark
-        """
-        # self.project = project.create()
-        pass
-
-    def update_project(self, project: Project):
-        """
-        Placeholder method to update a project to a benchmark
-        """
-        # self.project = project.update()
-        pass
 
 
 class TargetInstance:
@@ -86,42 +56,45 @@ class TargetInstance:
     def __repr__(self):
         return f"<TargetInstance {self.target_url}>"
 
-    def create(self):
-        """
-        Placeholder method to create a target instance
-        """
-        pass
-
-    def update(self):
-        """
-        Placeholder method to update a target instance
-        """
-        pass
-
 
 class Project:
-    def __init__(self, name: str, description: str = "", project_id: str = ""):
+    def __init__(self, name: str, documents: list[Document], project_id: str = ""):
         self.name = name
-        self.description = description
+        self.documents = documents
         self.project_id = project_id
 
     def __repr__(self):
         return f"<Project {self.name}>"
 
-    def create(self):
-        """
-        Placeholder method to create a project
-        """
-        pass
 
+class Document:
+    upload_time_start: TimeStamp
+    upload_time_end: TimeStamp
+
+    def __init__(
+        self, name: str, file_path: str, document_id: str = "", project_id: str = ""
+    ):
+        self.name = name
+        self.file_path = file_path
+        self.document_id = document_id
+        self.project_id = project_id
+        # self.version_number = version_number: int = 0,  # ?
+
+    def __repr__(self):
+        return f"<Document {self.name}>"
+
+    # TODO is this method needed?
+    # use uow to read the benchmark.project.documents and find documents.get(name) ?
+    # document = benchmark.project.documents.get(name)
+    # document.upload_time_start = datetime.now()  # timestamp provided by the client
     def update(self):
         """
-        Placeholder method to update a project
+        Placeholder method to update a document
         """
         pass
 
-    def add_documents(self, documents: list):
-        """
-        Placeholder method to add documents to a project
-        """
-        pass
+    @property
+    def upload_time(self):
+        if not self.upload_time_start and not self.upload_time_end:
+            return None
+        return self.upload_time_end - self.upload_time_start
