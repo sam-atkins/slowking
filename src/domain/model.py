@@ -14,12 +14,14 @@ class Benchmark:
         self,
         name,
         benchmark_type: str,
+        release_version: str,
         target_instance: TargetInstance,
         project: Optional[Project],
         version_number: int = 0,
     ):
         self.name = name
         self.benchmark_type = benchmark_type
+        self.release_version = release_version
         self.version_number = version_number
         self.target_instance = target_instance
         # artifacts (documents etc) - get from config? or hard code in the handler?
@@ -43,13 +45,11 @@ class TargetInstance:
         self,
         target_infra: str,
         target_url: str,
-        target_release_version: str,
         username: str,
         password: str,
     ):
         self.target_infra = target_infra
         self.target_url = target_url
-        self.target_release_version = target_release_version
         self.username = username
         self.password = password
 
@@ -58,10 +58,12 @@ class TargetInstance:
 
 
 class Project:
-    def __init__(self, name: str, documents: list[Document], project_id: str = ""):
+    def __init__(
+        self, name: str, documents: list[Document], eigen_project_id: str = ""
+    ):
         self.name = name
         self.documents = documents
-        self.project_id = project_id
+        self.eigen_project_id = eigen_project_id
 
     def __repr__(self):
         return f"<Project {self.name}>"
@@ -72,12 +74,16 @@ class Document:
     upload_time_end: TimeStamp
 
     def __init__(
-        self, name: str, file_path: str, document_id: str = "", project_id: str = ""
+        self,
+        name: str,
+        file_path: str,
+        document_id: str = "",
+        eigen_project_id: str = "",
     ):
         self.name = name
         self.file_path = file_path
         self.document_id = document_id
-        self.project_id = project_id
+        self.eigen_project_id = eigen_project_id
         # self.version_number = version_number: int = 0,  # ?
 
     def __repr__(self):
@@ -87,11 +93,11 @@ class Document:
     # use uow to read the benchmark.project.documents and find documents.get(name) ?
     # document = benchmark.project.documents.get(name)
     # document.upload_time_start = datetime.now()  # timestamp provided by the client
-    def update(self):
-        """
-        Placeholder method to update a document
-        """
-        pass
+    # def update(self):
+    #     """
+    #     Placeholder method to update a document
+    #     """
+    #     pass
 
     @property
     def upload_time(self):
