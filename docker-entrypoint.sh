@@ -10,10 +10,9 @@ usage() {
 }
 
 if [[ "$1" == "event-consumer" ]]; then
-    # tail -f /dev/null
     watchmedo auto-restart --directory=/home/app/src --pattern="*.py" -- python -m src.entrypoints.event_consumer
 elif [[ "$1" == "api" ]]; then
-    uvicorn src.entrypoints.api:app --host 0.0.0.0 --reload --port 8091
+    uvicorn src.router:app --host 0.0.0.0 --reload --port 8091
 else
     echo "Unknown or missing sub-command: '$1'"
     usage

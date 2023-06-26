@@ -1,24 +1,26 @@
 """
-API Entrypoints for the Eventbus application
+HTTP entrypoints for the Eventbus application
 """
 import logging.config
 from http import HTTPStatus
 from logging import getLogger
 
-from fastapi import BackgroundTasks, FastAPI, Request, Response
+from fastapi import APIRouter, BackgroundTasks, Request, Response
 from pydantic import BaseModel
 
 from src import bootstrap, config
 from src.adapters.redis_event_publisher import publish
 from src.domain import commands
 
-app = FastAPI()
+version = "v1"
+prefix = f"/api/{version}/benchmarks"
+router = APIRouter(prefix=prefix, tags=["benchmarks"])
+
+
 bus = bootstrap.bootstrap()
 
 logging.config.dictConfig(config.logger_dict_config())
 logger = getLogger(__name__)
-
-v1 = "/api/v1"
 
 
 def publish_to_bus(cmd: commands.Command):
@@ -28,21 +30,17 @@ def publish_to_bus(cmd: commands.Command):
     bus.handle(cmd)
 
 
-@app.get(f"{v1}/channels")
+@router.get("/channels")
 def channels():
     channels = config.get_redis_subscribe_channels()
     return {"channels": channels}
 
 
-@app.get(f"{v1}/health")
-def health():
-    return {"status": "healthy"}
-
-
-@app.post(f"{v1}/events/publish")
+@router.post("/events/publish")
 async def publish_event(request: Request, background_tasks: BackgroundTasks):
     """
-    Publish an event to the eventbus
+    Publish an event to the eventbus. This is intended for dev purposes only. Publish a
+    command via the command specific endpoint instead.
     """
     payload = await request.json()
     channel = payload.get("channel")
@@ -62,7 +60,7 @@ class BenchmarkPayload(BaseModel):
     password: str
 
 
-@app.post(f"{v1}/benchmarks/start")
+@router.post("/start")
 async def start_benchmark(payload: BenchmarkPayload, background_tasks: BackgroundTasks):
     logger.info(f"API /benchmarks/start starting benchmark: {payload.name}")
     cmd = commands.CreateBenchmark(
