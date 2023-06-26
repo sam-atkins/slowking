@@ -1,6 +1,8 @@
 """
 ORM module
 """
+import logging.config
+
 import sqlalchemy as db
 from sqlalchemy.orm import registry, relationship
 
@@ -9,9 +11,10 @@ from src.domain import model
 metadata = db.MetaData()
 mapper_registry = registry()
 
+logger = logging.getLogger(__name__)
 
-benchmark = db.Table(
-    "benchmark",
+benchmarks = db.Table(
+    "benchmarks",
     metadata,
     db.Column("id", db.Integer, primary_key=True, autoincrement=True),
     db.Column("name", db.String(255)),
@@ -19,22 +22,22 @@ benchmark = db.Table(
 )
 
 
-target_instance = db.Table(
-    "target_instance",
+target_instances = db.Table(
+    "target_instances",
     metadata,
     db.Column("id", db.Integer, primary_key=True, autoincrement=True),
-    db.Column("benchmark_id", db.ForeignKey("benchmark.id")),
+    db.Column("benchmark_id", db.ForeignKey("benchmarks.id")),
     db.Column("target_infra", db.String(255)),
     db.Column("target_url", db.String(255)),
     db.Column("username", db.String(255)),
     db.Column("password", db.String(255)),
 )
 
-project = db.Table(
-    "project",
+projects = db.Table(
+    "projects",
     metadata,
     db.Column("id", db.Integer, primary_key=True, autoincrement=True),
-    db.Column("benchmark_id", db.ForeignKey("benchmark.id")),
+    db.Column("benchmark_id", db.ForeignKey("benchmarks.id")),
     db.Column("name", db.String(255)),
     db.Column("eigen_project_id", db.Integer()),
 )
@@ -43,7 +46,7 @@ documents = db.Table(
     "documents",
     metadata,
     db.Column("id", db.Integer, primary_key=True, autoincrement=True),
-    db.Column("project_id", db.ForeignKey("project.id")),
+    db.Column("project_id", db.ForeignKey("projects.id")),
     db.Column("name", db.String(255)),
     db.Column("file_path", db.String(255)),
     db.Column("document_id", db.Integer()),
@@ -53,52 +56,25 @@ documents = db.Table(
 
 
 def start_mappers():
-    benchmark_mapper = mapper_registry.map_imperatively(
-        model.Benchmark,
-        benchmark,
-        # TODO needed?
-        # properties={
-        #     "target_instance": relationship(
-        #         target_instance,
-        #         collection_class=set,
-        #     ),
-        #     "project": relationship(
-        #         project,
-        #         collection_class=set,
-        #     ),
-        # },
+    logger.info("Starting ORM mappers...")
+    documents_mapper = mapper_registry.map_imperatively(model.Document, documents)
+    project_mapper = mapper_registry.map_imperatively(
+        model.Project,
+        projects,
+        properties={
+            "documents": relationship(documents_mapper),
+        },
     )
     mapper_registry.map_imperatively(
         model.TargetInstance,
-        target_instance,
-        properties={
-            "benchmark": relationship(
-                benchmark_mapper,
-                collection_class=set,
-            )
-        },
+        target_instances,
     )
-    project_mapper = mapper_registry.map_imperatively(
-        model.Project,
-        project,
-        properties={
-            "benchmark": relationship(
-                benchmark_mapper,
-                collection_class=set,
-            ),
-            "documents": relationship(
-                documents,
-                collection_class=set,
-            ),
-        },
-    )
+
     mapper_registry.map_imperatively(
-        model.Document,
-        documents,
+        model.Benchmark,
+        benchmarks,
         properties={
-            "project": relationship(
-                project_mapper,
-                collection_class=set,
-            )
+            "projects": relationship(project_mapper, secondary=target_instances)
         },
     )
+    logger.info("ORM mapping complete.")
