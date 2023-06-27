@@ -11,11 +11,13 @@ tasks:
   build:
     desc: Build the application via docker-compose
     cmds:
+      - task: env-file
       - docker-compose build
 
   up:
     desc: Run the application via docker-compose
     cmds:
+      - task: env-file
       - docker-compose up
 
   start:
@@ -28,6 +30,11 @@ tasks:
     cmds:
       - http POST localhost:8091/api/v1/events/publish @./tests/data/event.json
 
+  env-file:
+    desc: Create .env file from .env.dev
+    cmds:
+      - cp .env.dev .env
+
   local-env:
     desc: Create local virtual environment
     internal: true
@@ -37,6 +44,7 @@ tasks:
   install:
     desc: Install dependencies (locally, not in Docker)
     cmds:
+      - task: env-file
       - task: local-env
       - source .venv/bin/activate
       - poetry install

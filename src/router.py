@@ -3,15 +3,13 @@ API Router
 """
 from fastapi import FastAPI
 
+from src.config import settings
 from src.entrypoints.http import router
 
 app = FastAPI()
 app.include_router(router)
 
-version = "v1"
-prefix = f"/api/{version}"
 
-
-@app.get(f"{prefix}/health")
+@app.get(f"{settings.API_V1_STR}/health")
 def health():
     return {"status": "ok"}

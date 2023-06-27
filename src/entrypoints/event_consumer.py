@@ -5,20 +5,21 @@ from typing import Any
 import redis
 
 from src import bootstrap, config
+from src.config import settings
 from src.domain import events
 from src.service_layer import messagebus
 
 logger = logging.getLogger(__name__)
 
 
-r = redis.Redis(**config.get_redis_host_and_port())
+r = redis.Redis(**settings.REDIS_CONFIG)  # type: ignore
 
 
 def main():
     logger.info("Eventbus starting...")
     bus = bootstrap.bootstrap()
     pubsub = r.pubsub(ignore_subscribe_messages=True)
-    pubsub.subscribe(*config.get_redis_subscribe_channels())
+    pubsub.subscribe(*settings.REDIS_SUBSCRIBE_CHANNELS)
 
     for message in pubsub.listen():
         logger.info(f"Eventbus message received: {message}")

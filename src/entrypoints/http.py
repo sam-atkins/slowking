@@ -10,6 +10,7 @@ from pydantic import BaseModel
 
 from src import bootstrap, config
 from src.adapters.redis_event_publisher import publish
+from src.config import settings
 from src.domain import commands
 
 version = "v1"
@@ -32,8 +33,7 @@ def publish_to_bus(cmd: commands.Command):
 
 @router.get("/channels")
 def channels():
-    channels = config.get_redis_subscribe_channels()
-    return {"channels": channels}
+    return {"channels": settings.REDIS_SUBSCRIBE_CHANNELS}
 
 
 @router.post("/events/publish")
