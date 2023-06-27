@@ -4,7 +4,7 @@ set -e
 source /opt/setup/.venv/bin/activate
 
 usage() {
-    echo "Usage: $0 [eventbus|api]"
+    echo "Usage: $0 [api|event-consumer]"
     echo "  - api: start the fastapi server and eventbus"
     echo "  - event-consumer: start redis event consumer (pub/sub)"
 }

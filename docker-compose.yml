@@ -8,10 +8,8 @@ services:
     env_file:
       - .env
     environment:
-      DB_HOST: slowking-db
-      DB_PASSWORD: "abc123"
-      # DB_HOST: ${DB_HOST?Variable not set}
-      # DB_PASSWORD: ${DB_PASSWORD?Variable not set}
+      DB_HOST: ${DB_HOST?Variable not set}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD?Variable not set}
     volumes:
       - ./src:/home/app/src
     ports:
@@ -28,16 +26,14 @@ services:
     command: event-consumer
     env_file:
       - .env
+    environment:
+      DB_HOST: ${DB_HOST?Variable not set}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD?Variable not set}
+      REDIS_HOST: ${REDIS_HOST?Variable not set}
+      REDIS_PORT: ${REDIS_PORT?Variable not set}
     depends_on:
       - postgres
       - redis
-    environment:
-      DB_HOST: slowking-db
-      DB_PASSWORD: "abc123"
-      REDIS_HOST: ${REDIS_HOST?Variable not set}
-      REDIS_PORT: ${REDIS_PORT?Variable not set}
-      # REDIS_HOST: "slowking-redis-broker"
-      # REDIS_PORT: 63791
     volumes:
       - ./src:/home/app/src
 
@@ -52,9 +48,12 @@ services:
   postgres:
     image: postgres:15.3
     container_name: slowking-db
+    env_file:
+      - .env
     environment:
-      POSTGRES_USER: slowking
-      POSTGRES_PASSWORD: "abc123"
+      POSTGRES_DB: ${POSTGRES_DB?Variable not set}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD?Variable not set}
+      POSTGRES_USER: ${POSTGRES_USER?Variable not set}
     ports:
       - "54321:5432"
     volumes:

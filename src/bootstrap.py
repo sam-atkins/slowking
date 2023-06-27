@@ -1,10 +1,10 @@
 import logging.config
 from typing import Callable, Type
 
-from src import config
 from src.adapters import orm
 from src.adapters.db_engine import init_db
 from src.adapters.redis_event_publisher import publish
+from src.config import settings
 from src.domain import commands, events
 from src.service_layer import handlers, messagebus
 
@@ -21,7 +21,7 @@ def bootstrap(
     #     notifications = EmailNotifications()
 
     if start_orm:
-        init_db(db_uri=config.get_postgres_uri(), echo=True)
+        init_db(db_uri=settings.SQLALCHEMY_DATABASE_URI, echo=True)  # type: ignore
         orm.start_mappers()
         logger.info("Bootstrap DB and ORM setup completed")
 

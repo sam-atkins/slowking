@@ -1,4 +1,5 @@
 import sqlalchemy as db
+from pydantic import PostgresDsn
 from sqlalchemy.engine.base import Engine
 
 from src.adapters.orm import metadata
@@ -9,7 +10,7 @@ def get_engine(db_uri: str) -> Engine:
     return engine
 
 
-def init_db(db_uri: str, echo: bool = False):
+def init_db(db_uri: PostgresDsn, echo: bool = False):
     engine = get_engine(db_uri)
     # this creates all the tables
     # ideally replace with Alembic
