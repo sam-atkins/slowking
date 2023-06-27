@@ -8,7 +8,6 @@ from pydantic import BaseModel, SecretStr
 
 
 class CommandChannelEnum(StrEnum):
-    CREATE_CUSTOMER = "create_customer"
     CREATE_BENCHMARK = "create_benchmark"
 
     @classmethod
