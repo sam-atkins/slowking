@@ -11,6 +11,7 @@ logger = getLogger(__name__)
 
 class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
+    API_BENCHMARK_NAMESPACE_V1_STR: str = f"{API_V1_STR}/benchmarks"
 
     REDIS_HOST: str
     REDIS_PORT: str

@@ -13,9 +13,7 @@ from src.adapters.redis_event_publisher import publish
 from src.config import settings
 from src.domain import commands
 
-version = "v1"
-prefix = f"/api/{version}/benchmarks"
-router = APIRouter(prefix=prefix, tags=["benchmarks"])
+router = APIRouter(prefix=settings.API_BENCHMARK_NAMESPACE_V1_STR, tags=["benchmarks"])
 
 
 bus = bootstrap.bootstrap()
