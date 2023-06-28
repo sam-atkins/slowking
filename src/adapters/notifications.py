@@ -18,6 +18,4 @@ class AbstractNotifications(abc.ABC):
 
 class LogNotifications(AbstractNotifications):
     def send(self, event: events.Event, message: str):
-        logger.warning(
-            f"Sending notification for event {event} with message: {message}"
-        )
+        logger.info(f"Sending notification for event {event} with message: {message}")
