@@ -1,9 +1,9 @@
 import logging.config
 from typing import Callable, Type
 
-from src.adapters import orm
+from src.adapters import orm, redis_event_publisher
 from src.adapters.db_engine import init_db
-from src.adapters.redis_event_publisher import publish
+from src.adapters.notifications import AbstractNotifications, LogNotifications
 from src.config import settings
 from src.domain import commands, events
 from src.service_layer import handlers, messagebus
@@ -14,11 +14,11 @@ logger = logging.getLogger(__name__)
 def bootstrap(
     start_orm: bool = True,
     # uow: unit_of_work.AbstractUnitOfWork = unit_of_work.SqlAlchemyUnitOfWork(),
-    # notifications: AbstractNotifications = None,
-    publish: Callable = publish,
+    notifications: AbstractNotifications = None,  # type: ignore
+    publish: Callable[[events.Event], None] = redis_event_publisher.publish,
 ) -> messagebus.MessageBus:
-    # if notifications is None:
-    #     notifications = EmailNotifications()
+    if notifications is None:
+        notifications = LogNotifications()
 
     if start_orm:
         init_db(db_uri=settings.SQLALCHEMY_DATABASE_URI, echo=True)  # type: ignore

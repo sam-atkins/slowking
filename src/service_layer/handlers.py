@@ -6,7 +6,9 @@ from src.domain import commands, events
 logger = logging.getLogger(__name__)
 
 
-def create_benchmark(cmd: commands.CreateBenchmark, publish: Callable):
+def create_benchmark(
+    cmd: commands.CreateBenchmark, publish: Callable[[events.Event], None]
+):
     logger.info("=== Called create_benchmark handler ===")
     logger.info(f"create_benchmark cmd: {cmd}")
     # TODO use UOW domain model to create a benchmark in the db
