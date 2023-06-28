@@ -2,7 +2,7 @@
 Domain Events
 """
 from enum import StrEnum
-from typing import Literal
+from typing import Literal, Self, Type
 
 from pydantic import BaseModel, SecretStr
 
@@ -12,7 +12,7 @@ class EventChannelEnum(StrEnum):
     PROJECT_CREATED = "project_created"
 
     @classmethod
-    def get_event_channels(cls):
+    def get_event_channels(cls: Type[Self]) -> list[str]:
         return [channel.value for channel in list(cls)]
 
 

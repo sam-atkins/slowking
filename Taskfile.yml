@@ -50,11 +50,11 @@ tasks:
       - poetry install
       - pre-commit install
 
-  type:
+  mypy:
     desc: Run type checking (locally, not in Docker)
     cmds:
       - source .venv/bin/activate
-      - mypy .
+      - mypy . --check-untyped-defs
 
   fmt:
     desc: "Formats code using ruff and black"

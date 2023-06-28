@@ -2,7 +2,7 @@
 Domain Commands
 """
 from enum import StrEnum
-from typing import Literal
+from typing import Literal, Self, Type
 
 from pydantic import BaseModel, SecretStr
 
@@ -11,7 +11,7 @@ class CommandChannelEnum(StrEnum):
     CREATE_BENCHMARK = "create_benchmark"
 
     @classmethod
-    def get_command_channels(cls):
+    def get_command_channels(cls: Type[Self]) -> list[str]:
         return [channel.value for channel in list(cls)]
 
 
