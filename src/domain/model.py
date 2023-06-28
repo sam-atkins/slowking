@@ -10,6 +10,19 @@ TimeStamp = NewType("TimeStamp", datetime)
 
 
 class Benchmark:
+    """
+    The Benchmark domain entity represents a benchmarking run. It is an aggregate.
+
+    An aggregate is a domain object that contains other domain objects and lets us treat
+    the whole collection as a single unit. The only way to modify the objects inside the
+    aggregate is to load the whole thing, and to call methods on the aggregate itself.
+
+    The Benchmark entity contains the following entities:
+    - TargetInstance
+    - Project
+        - Document
+    """
+
     def __init__(
         self,
         name,
