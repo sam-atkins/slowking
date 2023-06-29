@@ -9,6 +9,7 @@ from pydantic import BaseModel, SecretStr
 
 class EventChannelEnum(StrEnum):
     BENCHMARK_CREATED = "benchmark_created"
+    DOCUMENT_UPDATED = "document_updated"
     PROJECT_CREATED = "project_created"
 
     @classmethod
@@ -22,6 +23,7 @@ class Event(BaseModel):
 
 class BenchmarkCreated(Event):
     channel: Literal[EventChannelEnum.BENCHMARK_CREATED]
+    benchmark_id: int
     name: str
     benchmark_type: str
     target_infra: str
@@ -30,6 +32,16 @@ class BenchmarkCreated(Event):
     username: str
     # Use .get_secret_value() method to see the secret's content
     password: SecretStr
+
+
+class DocumentUpdated(Event):
+    channel: Literal[EventChannelEnum.DOCUMENT_UPDATED]
+    document_id: int
+    document_name: str
+    eigen_document_id: str
+    eigen_project_id: str
+    end_time: str | None  # TODO: change to datetime
+    start_time: str | None  # TODO: change to datetime
 
 
 class ProjectCreated(Event):

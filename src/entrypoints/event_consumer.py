@@ -52,6 +52,7 @@ def publish_benchmark_created_event(message_payload, bus):
     event = events.BenchmarkCreated(
         channel=events.EventChannelEnum.BENCHMARK_CREATED,
         name=message_payload["name"],
+        benchmark_id=message_payload["benchmark_id"],
         benchmark_type=message_payload["benchmark_type"],
         target_infra=message_payload["target_infra"],
         target_url=message_payload["target_url"],

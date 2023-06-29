@@ -76,6 +76,8 @@ class Project:
     ):
         self.name = name
         self.documents = documents
+        # need a count of the docs. include here? or get len(documents)?
+        # artifact?
         self.eigen_project_id = eigen_project_id
 
     def __repr__(self):

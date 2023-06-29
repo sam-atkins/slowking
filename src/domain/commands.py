@@ -9,6 +9,7 @@ from pydantic import BaseModel, SecretStr
 
 class CommandChannelEnum(StrEnum):
     CREATE_BENCHMARK = "create_benchmark"
+    UPDATE_DOCUMENT = "update_document"
 
     @classmethod
     def get_command_channels(cls: Type[Self]) -> list[str]:
@@ -28,3 +29,12 @@ class CreateBenchmark(Command):
     target_release_version: str
     username: str
     password: SecretStr
+
+
+class UpdateDocument(Command):
+    channel: Literal[CommandChannelEnum.UPDATE_DOCUMENT]
+    document_name: str
+    eigen_document_id: str
+    eigen_project_id: str
+    end_time: str | None  # TODO: change to datetime
+    start_time: str | None  # TODO: change to datetime
