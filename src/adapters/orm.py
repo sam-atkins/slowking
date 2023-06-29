@@ -3,58 +3,65 @@ ORM module
 """
 import logging.config
 
-import sqlalchemy as db
+from sqlalchemy import (
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    MetaData,
+    String,
+    Table,
+)
 from sqlalchemy.orm import registry, relationship
 
 from src.domain import model
 
-metadata = db.MetaData()
+metadata = MetaData()
 mapper_registry = registry()
 
 logger = logging.getLogger(__name__)
 
-benchmarks = db.Table(
+benchmarks = Table(
     "benchmarks",
     metadata,
-    db.Column("id", db.Integer, primary_key=True, autoincrement=True),
-    db.Column("name", db.String(255)),
-    db.Column("benchmark_type", db.String(255)),
+    Column("id", Integer, primary_key=True, autoincrement=True),
+    Column("name", String(255)),
+    Column("benchmark_type", String(255)),
 )
 
 
-target_instances = db.Table(
+target_instances = Table(
     "target_instances",
     metadata,
-    db.Column("id", db.Integer, primary_key=True, autoincrement=True),
-    db.Column("benchmark_id", db.ForeignKey("benchmarks.id")),
-    db.Column("target_infra", db.String(255)),
-    db.Column("target_url", db.String(255)),
-    db.Column("username", db.String(255)),
-    db.Column("password", db.String(255)),
+    Column("id", Integer, primary_key=True, autoincrement=True),
+    Column("benchmark_id", ForeignKey("benchmarks.id")),
+    Column("target_infra", String(255)),
+    Column("target_url", String(255)),
+    Column("username", String(255)),
+    Column("password", String(255)),
 )
 
-projects = db.Table(
+projects = Table(
     "projects",
     metadata,
-    db.Column("id", db.Integer, primary_key=True, autoincrement=True),
-    db.Column("benchmark_id", db.ForeignKey("benchmarks.id")),
-    db.Column("name", db.String(255)),
-    db.Column("eigen_project_id", db.Integer()),
+    Column("id", Integer, primary_key=True, autoincrement=True),
+    Column("benchmark_id", ForeignKey("benchmarks.id")),
+    Column("target_instance_id", ForeignKey("target_instances.id")),
+    Column("name", String(255)),
+    Column("eigen_project_id", Integer(), nullable=True),
 )
 
-documents = db.Table(
+documents = Table(
     "documents",
     metadata,
-    db.Column("id", db.Integer, primary_key=True, autoincrement=True),
-    db.Column("project_id", db.ForeignKey("projects.id")),
-    db.Column("name", db.String(255)),
-    db.Column("file_path", db.String(255)),
-    db.Column("document_id", db.Integer()),
-    db.Column("upload_time_start", db.DateTime()),
-    db.Column("upload_time_end", db.DateTime()),
+    Column("id", Integer, primary_key=True, autoincrement=True),
+    Column("project_id", ForeignKey("projects.id")),
+    Column("name", String(255)),
+    Column("file_path", String(255)),
+    Column("document_id", Integer()),
+    Column("upload_time_start", DateTime()),
+    Column("upload_time_end", DateTime()),
 )
-
-# FIXME FK constraint between target_instances and projects
 
 
 def start_mappers():
