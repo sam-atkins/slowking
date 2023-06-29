@@ -47,4 +47,4 @@ class DocumentUpdated(Event):
 class ProjectCreated(Event):
     channel: Literal[EventChannelEnum.PROJECT_CREATED]
     target_url: str
-    project_id: str  # or int?
+    project_id: int

@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 from typing import Callable
 
 from src.domain import commands, events, model
@@ -14,7 +15,16 @@ def create_benchmark(
 ):
     logger.info("=== Called create_benchmark handler ===")
 
+    name = f"{datetime.now().strftime('%Y-%m-%d, %H:%M:%S')} - {cmd.name}"
+    # NOTE placeholder for benchmark.id to avoid DetachedInstanceError Session issues
+    benchmark_id: int
+
     with uow:
+        project = model.Project(
+            name=name,
+            documents=[],
+            eigen_project_id=None,
+        )
         target = model.TargetInstance(
             target_infra=cmd.target_infra,
             target_url=cmd.target_url,
@@ -22,24 +32,25 @@ def create_benchmark(
             password=cmd.password.get_secret_value(),
         )
         bm = model.Benchmark(
-            name=cmd.name,
+            name=name,
             benchmark_type=cmd.benchmark_type,
             release_version=cmd.target_release_version,
             target_instance=target,
-            project=None,
+            project=project,
         )
-        benchmark = uow.benchmarks.add(bm)
+        uow.benchmarks.add(bm)
+        uow.flush()
+        benchmark = uow.benchmarks.get_by_name(name)
+        logger.info(f"=== benchmark === : {benchmark}")
+        benchmark_id = benchmark.id
+        logger.info(f"=== create_benchmark :: benchmark.id === : {benchmark.id}")
         uow.commit()
-
-    # TODO placeholder
-    # benchmark_id = 1
 
     publish(
         events.BenchmarkCreated(
             channel=events.EventChannelEnum.BENCHMARK_CREATED,
             name=cmd.name,
-            # benchmark_id=benchmark_id,
-            benchmark_id=benchmark.id,
+            benchmark_id=benchmark_id,
             benchmark_type=cmd.benchmark_type,
             target_infra=cmd.target_infra,
             target_url=cmd.target_url,
@@ -55,9 +66,16 @@ def get_artifacts(event: events.BenchmarkCreated):
     logger.info(f"get_artifacts event: {event}")
 
 
-def create_project(event: events.BenchmarkCreated):
+def create_project(
+    event: events.BenchmarkCreated,
+    uow: unit_of_work.AbstractUnitOfWork,
+):
     logger.info("=== Called create_project ===")
     logger.info(f"create_project event: {event}")
+
+    with uow:
+        benchmark = uow.benchmarks.get_by_id(event.benchmark_id)
+        logger.info(f"=== create_project :: benchmark === : {benchmark}")
 
 
 def upload_documents(event: events.ProjectCreated):
