@@ -74,7 +74,7 @@ class TargetInstance:
 
 class Project:
     def __init__(
-        self, name: str, documents: list[Document], eigen_project_id: str = ""
+        self, name: str, documents: list[Document], eigen_project_id: int | None = None
     ):
         self.name = name
         self.documents = documents
