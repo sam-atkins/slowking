@@ -26,11 +26,18 @@ class AbstractUnitOfWork(abc.ABC):
     def __exit__(self, *args):
         self.rollback()
 
+    def flush(self):
+        self._flush()
+
     def commit(self):
         self._commit()
 
     @abc.abstractmethod
     def _commit(self):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def _flush(self):
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -53,6 +60,9 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
 
     def _commit(self):
         self.session.commit()
+
+    def _flush(self):
+        self.session.flush()
 
     def rollback(self):
         self.session.rollback()
