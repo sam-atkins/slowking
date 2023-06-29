@@ -23,9 +23,11 @@ class Benchmark:
         - Document
     """
 
+    id: int
+
     def __init__(
         self,
-        name,
+        name: str,
         benchmark_type: str,
         release_version: str,
         target_instance: TargetInstance,

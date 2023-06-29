@@ -1,25 +1,45 @@
 import logging
 from typing import Callable
 
-from src.domain import commands, events
+from src.domain import commands, events, model
+from src.service_layer import unit_of_work
 
 logger = logging.getLogger(__name__)
 
 
 def create_benchmark(
-    cmd: commands.CreateBenchmark, publish: Callable[[events.Event], None]
+    cmd: commands.CreateBenchmark,
+    uow: unit_of_work.AbstractUnitOfWork,
+    publish: Callable[[events.Event], None],
 ):
     logger.info("=== Called create_benchmark handler ===")
-    logger.info(f"create_benchmark cmd: {cmd}")
-    # TODO use UOW domain model to create a benchmark in the db
-    # benchmark_id is the id of the benchmark created in the db
-    benchmark_id = 1
+
+    with uow:
+        target = model.TargetInstance(
+            target_infra=cmd.target_infra,
+            target_url=cmd.target_url,
+            username=cmd.username,
+            password=cmd.password.get_secret_value(),
+        )
+        bm = model.Benchmark(
+            name=cmd.name,
+            benchmark_type=cmd.benchmark_type,
+            release_version=cmd.target_release_version,
+            target_instance=target,
+            project=None,
+        )
+        benchmark = uow.benchmarks.add(bm)
+        uow.commit()
+
+    # TODO placeholder
+    # benchmark_id = 1
 
     publish(
         events.BenchmarkCreated(
             channel=events.EventChannelEnum.BENCHMARK_CREATED,
             name=cmd.name,
-            benchmark_id=benchmark_id,
+            # benchmark_id=benchmark_id,
+            benchmark_id=benchmark.id,
             benchmark_type=cmd.benchmark_type,
             target_infra=cmd.target_infra,
             target_url=cmd.target_url,

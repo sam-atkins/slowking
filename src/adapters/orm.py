@@ -54,6 +54,8 @@ documents = db.Table(
     db.Column("upload_time_end", db.DateTime()),
 )
 
+# FIXME FK constraint between target_instances and projects
+
 
 def start_mappers():
     logger.info("Starting ORM mappers...")
