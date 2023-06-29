@@ -50,6 +50,16 @@ tasks:
       - poetry install
       - pre-commit install
 
+  install-work:
+    desc: Install dependencies (locally, not in Docker, on work machine)
+    cmds:
+      - pyenv local
+      - task: env-file
+      - task: local-env
+      - source .venv/bin/activate
+      - poetry@1.5.1 install
+      - pre-commit install
+
   mypy:
     desc: Run type checking (locally, not in Docker)
     cmds:
