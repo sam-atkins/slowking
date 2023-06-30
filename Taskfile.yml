@@ -1,6 +1,8 @@
 # https://taskfile.dev
 version: '3'
 
+dotenv: ['.env']
+
 tasks:
   default:
     desc: Build and run the application
@@ -18,17 +20,29 @@ tasks:
     desc: Run the application via docker-compose
     cmds:
       - task: env-file
-      - docker-compose up --build
+      - docker-compose up
+
+  up-bus:
+    desc: Run the application via docker-compose
+    cmds:
+      - task: env-file
+      - source .venv/bin/activate
+      - poetry@1.5.1 run python -m src.entrypoints.event_consumer
 
   start:
     desc: Make a request to the application using HTTPie to start a benchmark
     cmds:
       - http POST localhost:8091/api/v1/benchmarks/start @./tests/data/payload.json
 
-  health:
+  api-health:
     desc: Make a request to the application using HTTPie to /health endpoint
     cmds:
       - http localhost:8091/api/v1/health
+
+  api-token:
+    desc: Make a request to the application using HTTPie to /token endpoint
+    cmds:
+      - http -v POST localhost:8001/auth/v1/token/ @./tests/data/auth.json
 
   event:
     desc: Make a request to the application using HTTPie with a test event

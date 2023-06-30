@@ -19,7 +19,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed, wait_random
 logger = logging.getLogger(__name__)
 
 
-AUTH_RETRIES = 5
+AUTH_RETRIES = 2
 
 
 class HttpClient(Session):
@@ -66,7 +66,18 @@ class HttpClient(Session):
             base_url += "/"
 
         if not base_auth_url:
-            base_auth_url = base_url
+            # TODO hard code in the auth url for now
+            # TODO try container name eigen_dev_eigen-auth-webserver_1
+            # base_auth_url = "http://localhost:8001"
+            # base_auth_url = "http://eigen_dev_eigen-auth-webserver_1:8001"
+
+            # connects but 400 error, Invalid HTTP_HOST header
+            # base_auth_url = "http://eigen_dev_eigen-auth-webserver_1:8000"
+            base_auth_url = "http://eigen_dev_eigen-auth-webserver_1:8001/"
+            # base_auth_url = "http://localhost:8001/auth/v1/token/"
+            # base_auth_url = "http://0.0.0.0:8001/auth/v1/token/"
+            # base_auth_url = "http://0.0.0.0:8001/"
+            # base_auth_url = "http://localhost:8001/"
 
         if not base_auth_url.endswith("/"):
             base_auth_url += "/"
@@ -173,9 +184,19 @@ class HttpClient(Session):
         #         logger.info("New authentication token created - reattempting request")
 
         #     retry_attempts += 1
+        logger.info(f"=== HTTP CLIENT Requesting {method} {url}")
+        # http://localhost:8001/auth/v1/token/
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "Host": "eigen_dev_eigen-auth-webserver_1:8001",
+            # "Host": "localhost",
+            # "HTTP_HOST": "slowking-event-consumer",
+        }
 
         try:
-            response = super().request(method, url, **kwargs)
+            # response = super().request(method, url, **kwargs)
+            response = super().request(method, url, headers, **kwargs)
             self._raise_for_status(response)
 
             if response.headers.get("Deprecation"):
@@ -217,10 +238,17 @@ class HttpClient(Session):
         """
         username = username or self.username
         password = password or self.password
+        # TODO remove
+        logger.info(f"Authenticating with username: {username}")
+        logger.info(f"Authenticating with password: {password}")
+        logger.info(f"Authenticating with url: {self.auth_url}")
 
         # Token will be stored in the session's cookiejar
         response = self.post(
-            url=self.auth_url, json={"username": username, "password": password}
+            url=self.auth_url,
+            # json={"username": username, "password": password},
+            json={"password": password, "username": username},
+            # verify=False,
         )
         self._raise_for_status(response)
 

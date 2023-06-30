@@ -2,6 +2,7 @@ import logging
 from datetime import datetime
 from typing import Callable
 
+from src.adapters.http import HttpClient
 from src.domain import commands, events, model
 from src.service_layer import unit_of_work
 
@@ -56,7 +57,7 @@ def create_benchmark(
             target_url=cmd.target_url,
             target_release_version=cmd.target_release_version,
             username=cmd.username,
-            password=cmd.password,
+            password=cmd.password.get_secret_value(),
         )
     )
 
@@ -73,6 +74,19 @@ def create_project(
     logger.info("=== Called create_project ===")
     logger.info(f"create_project event: {event}")
 
+    # TODO make request
+    # password = event.password.get_secret_value()
+    password = event.password
+    logger.info(f"=== create_project :: password === : {password}")
+
+    client = HttpClient(
+        base_url=event.target_url,
+        username=event.username,
+        password=password,
+    )
+    client.create_project(name=event.name, description=event.benchmark_type)
+
+    # TODO use uow to persist project to benchmark aggregate
     with uow:
         benchmark = uow.benchmarks.get_by_id(event.benchmark_id)
         logger.info(f"=== create_project :: benchmark === : {benchmark}")

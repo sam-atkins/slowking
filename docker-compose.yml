@@ -8,17 +8,19 @@ services:
     env_file:
       - .env
     environment:
-      DB_HOST: ${DB_HOST?Variable not set}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD?Variable not set}
+      DB_HOST: ${SLOWKING_DB_HOST?Variable not set}
+      POSTGRES_PASSWORD: ${SLOWKING_POSTGRES_PASSWORD?Variable not set}
     volumes:
       - ./src:/home/app/src
     ports:
       - 8091:8091
     restart: on-failure
     depends_on:
-      - postgres
-      - redis
+      - slowking-postgres
+      - slowking-redis
       - slowking-event-consumer
+    networks:
+      - network_eigen_dev
 
   slowking-event-consumer:
     build: .
@@ -27,41 +29,52 @@ services:
     env_file:
       - .env
     environment:
-      DB_HOST: ${DB_HOST?Variable not set}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD?Variable not set}
-      REDIS_HOST: ${REDIS_HOST?Variable not set}
-      REDIS_PORT: ${REDIS_PORT?Variable not set}
+      DB_HOST: ${SLOWKING_DB_HOST?Variable not set}
+      POSTGRES_PASSWORD: ${SLOWKING_POSTGRES_PASSWORD?Variable not set}
+      REDIS_HOST: ${SLOWKING_REDIS_HOST?Variable not set}
+      REDIS_PORT: ${SLOWKING_REDIS_PORT?Variable not set}
     depends_on:
-      - postgres
-      - redis
+      - slowking-postgres
+      - slowking-redis
     volumes:
       - ./src:/home/app/src
+    networks:
+      - network_eigen_dev
 
-  redis:
+  slowking-redis:
     container_name: slowking-redis-broker
     image: redis:7
     restart: always
     command: --port 63791
     ports:
       - 63791:63791
+    networks:
+      - network_eigen_dev
 
-  postgres:
+  slowking-postgres:
     image: postgres:15.3
     container_name: slowking-db
     env_file:
       - .env
     environment:
-      POSTGRES_DB: ${POSTGRES_DB?Variable not set}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD?Variable not set}
-      POSTGRES_USER: ${POSTGRES_USER?Variable not set}
-      PGPORT: ${DB_PORT?Variable not set}
+      POSTGRES_DB: ${SLOWKING_POSTGRES_DB?Variable not set}
+      POSTGRES_PASSWORD: ${SLOWKING_POSTGRES_PASSWORD?Variable not set}
+      POSTGRES_USER: ${SLOWKING_POSTGRES_USER?Variable not set}
+      PGPORT: ${SLOWKING_DB_PORT?Variable not set}
     ports:
       - "54322:5432"
     volumes:
       - ./postgres-data:/var/lib/postgresql/data
+    networks:
+      - network_eigen_dev
+
+networks:
+  network_eigen_dev:
+    name: eigen_dev_default
+    external: true
 
 volumes:
   slowking-api-eventbus:
   slowking-api-event-consumer:
-  redis:
-  postgres:
+  slowking-redis:
+  slowking-postgres:
