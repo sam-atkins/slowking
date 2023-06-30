@@ -4,7 +4,7 @@ Benchmarking domain entities
 from __future__ import annotations
 
 from datetime import datetime
-from typing import NewType, Optional
+from typing import NewType
 
 TimeStamp = NewType("TimeStamp", datetime)
 
@@ -31,7 +31,7 @@ class Benchmark:
         benchmark_type: str,
         release_version: str,
         target_instance: TargetInstance,
-        project: Optional[Project],
+        project: Project,
         version_number: int = 0,
     ):
         self.name = name
