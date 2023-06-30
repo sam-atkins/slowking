@@ -18,12 +18,17 @@ tasks:
     desc: Run the application via docker-compose
     cmds:
       - task: env-file
-      - docker-compose up
+      - docker-compose up --build
 
   start:
     desc: Make a request to the application using HTTPie to start a benchmark
     cmds:
       - http POST localhost:8091/api/v1/benchmarks/start @./tests/data/payload.json
+
+  health:
+    desc: Make a request to the application using HTTPie to /health endpoint
+    cmds:
+      - http localhost:8091/api/v1/health
 
   event:
     desc: Make a request to the application using HTTPie with a test event
@@ -60,6 +65,13 @@ tasks:
       - source .venv/bin/activate
       - poetry@1.5.1 install
       - pre-commit install
+
+  update:
+    desc: Update dependencies (locally, not in Docker)
+    cmds:
+      - pyenv local
+      - source .venv/bin/activate
+      - poetry@1.5.1 install
 
   mypy:
     desc: Run type checking (locally, not in Docker)
