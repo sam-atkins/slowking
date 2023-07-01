@@ -68,6 +68,16 @@ services:
     # networks:
     #   - network_eigen_dev
 
+  eigenapi:
+    build:
+      context: ./eigenapi
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    container_name: eigenapi
+    volumes:
+      - ./eigenapi:/home/app/src
+
 # networks:
 #   network_eigen_dev:
 #     name: eigen_dev_default
@@ -78,3 +88,4 @@ volumes:
   slowking-api-event-consumer:
   slowking-redis:
   slowking-postgres:
+  eigenapi:
