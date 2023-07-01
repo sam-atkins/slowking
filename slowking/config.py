@@ -3,8 +3,8 @@ from typing import Any, Optional
 
 from pydantic import BaseSettings, PostgresDsn, validator
 
-from src.domain.commands import CommandChannelEnum
-from src.domain.events import EventChannelEnum
+from slowking.domain.commands import CommandChannelEnum
+from slowking.domain.events import EventChannelEnum
 
 logger = getLogger(__name__)
 

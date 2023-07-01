@@ -38,6 +38,6 @@ RUN poetry install
 WORKDIR /home/app
 
 COPY docker-entrypoint.sh docker-entrypoint.sh
-COPY ./src ./src
+COPY ./slowking ./slowking
 
 ENTRYPOINT /home/app/docker-entrypoint.sh $0 $@

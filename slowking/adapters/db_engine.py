@@ -2,7 +2,7 @@ import sqlalchemy as db
 from pydantic import PostgresDsn
 from sqlalchemy.engine.base import Engine
 
-from src.adapters.orm import metadata
+from slowking.adapters.orm import metadata
 
 
 def get_engine(db_uri: str) -> Engine:

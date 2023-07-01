@@ -4,10 +4,10 @@ from typing import Any
 
 import redis
 
-from src import bootstrap, config
-from src.config import settings
-from src.domain import events
-from src.service_layer import messagebus
+from slowking import bootstrap, config
+from slowking.config import settings
+from slowking.domain import events
+from slowking.service_layer import messagebus
 
 logger = logging.getLogger(__name__)
 

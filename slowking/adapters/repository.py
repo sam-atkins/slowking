@@ -3,8 +3,8 @@ Repository adapters
 """
 import abc
 
-from src.adapters import orm
-from src.domain import model
+from slowking.adapters import orm
+from slowking.domain import model
 
 
 class AbstractRepository(abc.ABC):

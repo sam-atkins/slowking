@@ -6,8 +6,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.session import Session
 
-from src.adapters import repository
-from src.config import settings
+from slowking.adapters import repository
+from slowking.config import settings
 
 DEFAULT_SESSION_FACTORY = sessionmaker(
     bind=create_engine(

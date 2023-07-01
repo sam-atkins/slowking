@@ -2,8 +2,8 @@ import logging
 
 import redis
 
-from src.config import settings
-from src.domain import events
+from slowking.config import settings
+from slowking.domain import events
 
 logger = logging.getLogger(__name__)
 

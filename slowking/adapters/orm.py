@@ -14,7 +14,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import registry, relationship
 
-from src.domain import model
+from slowking.domain import model
 
 metadata = MetaData()
 mapper_registry = registry()

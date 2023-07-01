@@ -4,7 +4,7 @@ MessageBus is a class that handles the communication between the application
 import logging
 from typing import Callable, Type, Union
 
-from src.domain import commands, events
+from slowking.domain import commands, events
 
 logger = logging.getLogger(__name__)
 
