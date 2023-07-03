@@ -45,5 +45,7 @@ class DocumentUpdated(Event):
 
 class ProjectCreated(Event):
     channel: Literal[EventChannelEnum.PROJECT_CREATED]
+    eigen_project_id: int
+    password: SecretStr
     target_url: str
-    project_id: int
+    username: str

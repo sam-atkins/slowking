@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import logging.config
 from dataclasses import dataclass
-from io import BytesIO
+from pathlib import Path
 from typing import Any, Optional
 
 from requests import HTTPError, Response, Session
@@ -255,10 +255,7 @@ class EigenClient(Session):
         result = ProjectStruct(**res_json)
         return result
 
-    # TODO document uploader - use this or update by copying from ECU?
-    def upload_files(
-        self, project_id: int, files: list[BirdDocument]
-    ) -> list[dict[str, Any]]:
+    def upload_files(self, project_id: int, files: list[Path]) -> list[dict[str, Any]]:
         """Upload files.
 
         Args:
@@ -272,7 +269,7 @@ class EigenClient(Session):
         res = self.post(
             url=url,
             data={"document_type_id": project_id},
-            files=[("files", (f.filename, f.data)) for f in files],
+            files=[("files", (f.name, f.read_bytes())) for f in files],
             # headers={
             #     "X-CSRFToken": self.csrf_token,
             #     "Referer": f"{self.base_url_v2}api-csrf-token/",
@@ -292,14 +289,6 @@ class ProjectStruct:
     created_at: str
     language: str
     use_numerical_confidence_predictions: bool
-
-
-@dataclass
-class BirdDocument:
-    """Wrapper for file objects used by the Bird class to upload files."""
-
-    filename: str
-    data: BytesIO
 
 
 class BaseError(Exception):

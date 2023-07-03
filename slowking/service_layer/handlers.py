@@ -89,8 +89,10 @@ def create_project(
     publish(
         events.ProjectCreated(
             channel=events.EventChannelEnum.PROJECT_CREATED,
+            eigen_project_id=project_id,
+            password=event.password,
+            username=event.username,
             target_url=event.target_url,
-            project_id=project_id,
         )
     )
 
@@ -103,7 +105,17 @@ def upload_documents(event: events.ProjectCreated):
     logger.info(f"=== upload_documents :: found files === : {files}")
     f_list = list(files.__iter__())
     logger.info(f"=== upload_documents :: f_list === : {f_list}")
+
+    # get benchmark from db? need id? or get from event
+
     # use EigenClient to upload documents
+    client = EigenClient(
+        base_url=event.target_url,
+        username=event.username,
+        password=event.password.get_secret_value(),
+    )
+    response = client.upload_files(project_id=event.eigen_project_id, files=f_list)
+    logger.info(f"=== upload_documents :: response === : {response}")
     # end
 
 

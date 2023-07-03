@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime
 from logging import getLogger
 
-from fastapi import FastAPI, Response, UploadFile
+from fastapi import FastAPI, UploadFile
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
@@ -51,7 +51,7 @@ def create_project(item: ProjectItem):
     return JSONResponse(content=data)
 
 
-@app.post("api/v1/document_uploader/")
+@app.post("/api/v1/document_uploader/")
 def document_uploader(files: list[UploadFile]):
     # TODO add background task to "process" documents
     file_names = [file.filename for file in files]
@@ -65,4 +65,4 @@ def document_uploader(files: list[UploadFile]):
     #   wait random number of seconds (between 1 and 5?)
     #   send end upload doc event
 
-    return Response(content=f"{file_qty} document(s) received")
+    return {"message": f"{file_qty} document(s) received"}

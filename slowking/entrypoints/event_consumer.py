@@ -86,7 +86,9 @@ def publish_project_created_event(message_payload, bus):
     event = events.ProjectCreated(
         channel=events.EventChannelEnum.PROJECT_CREATED,
         target_url=message_payload["target_url"],
-        project_id=message_payload["project_id"],
+        eigen_project_id=message_payload["eigen_project_id"],
+        username=message_payload["username"],
+        password=message_payload["password"],
     )
     bus.handle(event)
 
