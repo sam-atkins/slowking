@@ -4,7 +4,7 @@ Domain Events
 from enum import StrEnum
 from typing import Literal, Self, Type
 
-from pydantic import BaseModel
+from pydantic import BaseModel, SecretStr
 
 
 class EventChannelEnum(StrEnum):
@@ -31,8 +31,7 @@ class BenchmarkCreated(Event):
     target_release_version: str
     username: str
     # Use .get_secret_value() method to see the secret's content
-    # password: SecretStr
-    password: str
+    password: SecretStr
 
 
 class DocumentUpdated(Event):

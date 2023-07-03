@@ -21,22 +21,15 @@ def create_benchmark(
     benchmark_id: int
 
     with uow:
-        project = model.Project(
-            name=name,
-            documents=[],
-            eigen_project_id=None,
-        )
-        target = model.TargetInstance(
-            target_infra=cmd.target_infra,
-            target_url=cmd.target_url,
-            username=cmd.username,
-            password=cmd.password.get_secret_value(),
-        )
+        project = model.Project(name=name)
         bm = model.Benchmark(
             name=name,
             benchmark_type=cmd.benchmark_type,
             release_version=cmd.target_release_version,
-            target_instance=target,
+            target_infra=cmd.target_infra,
+            target_url=cmd.target_url,
+            username=cmd.username,
+            password=cmd.password.get_secret_value(),
             project=project,
         )
         uow.benchmarks.add(bm)
@@ -57,7 +50,7 @@ def create_benchmark(
             target_url=cmd.target_url,
             target_release_version=cmd.target_release_version,
             username=cmd.username,
-            password=cmd.password.get_secret_value(),
+            password=cmd.password,
         )
     )
 
@@ -74,23 +67,24 @@ def create_project(
     logger.info("=== Called create_project ===")
     logger.info(f"create_project event: {event}")
 
-    # TODO make request
-    # password = event.password.get_secret_value()
-    password = event.password
-    logger.info(f"=== create_project :: password === : {password}")
-
     client = EigenClient(
         base_url=event.target_url,
         username=event.username,
-        password=password,
+        password=event.password.get_secret_value(),
     )
     project = client.create_project(name=event.name, description=event.benchmark_type)
     logger.info(f"=== create_project :: project response === : {project}")
+    project_id = project.get("document_type_id")
 
-    # TODO use uow to persist project to benchmark aggregate
     with uow:
         benchmark = uow.benchmarks.get_by_id(event.benchmark_id)
-        logger.info(f"=== create_project :: benchmark === : {benchmark}")
+        benchmark.project.eigen_project_id = project_id
+        logger.info(f"===  benchmark.project === : {benchmark.project}")
+        uow.benchmarks.add(benchmark)
+        uow.commit()
+
+    logger.info("=== Create Project completed ===")
+    # TODO publish event ProjectCreated
 
 
 def upload_documents(event: events.ProjectCreated):
@@ -107,6 +101,8 @@ def update_document(
     # TODO use UOW domain model to update a document in the db
     # document_id is the id of the document updated in the db
     document_id = 1
+
+    # NOTE, `benchmark.project.documents` will raise if there are no documents
 
     publish(
         events.DocumentUpdated(

@@ -18,9 +18,8 @@ class Benchmark:
     aggregate is to load the whole thing, and to call methods on the aggregate itself.
 
     The Benchmark entity contains the following entities:
-    - TargetInstance
-    - Project
-        - Document
+        - Project
+            - Document
     """
 
     id: int
@@ -30,7 +29,6 @@ class Benchmark:
         name: str,
         benchmark_type: str,
         release_version: str,
-        # target_instance: TargetInstance,
         target_infra: str,
         target_url: str,
         username: str,
@@ -42,7 +40,6 @@ class Benchmark:
         self.benchmark_type = benchmark_type
         self.release_version = release_version
         self.version_number = version_number
-        # self.target_instance = target_instance
         self.target_infra = target_infra
         self.target_url = target_url
         self.username = username
@@ -61,23 +58,6 @@ class Benchmark:
 
     def __hash__(self):
         return hash((self.name, self.version_number))
-
-
-# class TargetInstance:
-#     def __init__(
-#         self,
-#         target_infra: str,
-#         target_url: str,
-#         username: str,
-#         password: str,
-#     ):
-#         self.target_infra = target_infra
-#         self.target_url = target_url
-#         self.username = username
-#         self.password = password
-
-#     def __repr__(self):
-#         return f"<TargetInstance {self.target_url}>"
 
 
 class Project:
@@ -116,16 +96,6 @@ class Document:
 
     def __repr__(self):
         return f"<Document {self.name}>"
-
-    # TODO is this method needed?
-    # use uow to read the benchmark.project.documents and find documents.get(name) ?
-    # document = benchmark.project.documents.get(name)
-    # document.upload_time_start = datetime.now()  # timestamp provided by the client
-    # def update(self):
-    #     """
-    #     Placeholder method to update a document
-    #     """
-    #     pass
 
     @property
     def upload_time(self):
