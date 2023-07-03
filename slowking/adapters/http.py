@@ -11,7 +11,6 @@ import logging.config
 from dataclasses import dataclass
 from io import BytesIO
 from typing import Any, Optional
-from urllib.parse import urljoin
 
 from requests import HTTPError, Response, Session
 from tenacity import retry, stop_after_attempt, wait_fixed, wait_random
@@ -74,19 +73,13 @@ class EigenClient(Session):
         if not base_auth_url.endswith("/"):
             base_auth_url += "/"
 
-        # self.base_url = urljoin("http://", base_url)
-        # self.base_auth_url = urljoin("http://", base_auth_url)
-        # logger.info(f"=== self.base_url === : {self.base_url}")
-        # logger.info(f"=== self.base_auth_url === : {self.base_auth_url}")
-        self.base_url_v1 = urljoin(base_url, "api/v1/")
-        self.auth_url = urljoin(base_auth_url, "auth/v1/token/")
-        self.base_url_v1 = urljoin(base_url, "api/v1/")
-        self.base_url_v2 = urljoin(base_url, "api/v2/")
-        self.base_url_project_management_v2 = urljoin(
-            base_url, "api/project_management/v2/"
-        )
-        self.base_url_training_v1 = urljoin(base_url, "api/training_input/v1/")
-        self.base_url_prediction_v1 = urljoin(base_url, "api/prediction/v1/")
+        self.base_url_v1 = f"{base_url}api/v1/"
+        self.auth_url = f"{base_auth_url}auth/v1/token/"
+        self.base_url_v1 = f"{base_url}api/v1/"
+        self.base_url_v2 = f"{base_url}api/v2/"
+        self.base_url_project_management_v2 = f"{base_url}api/project_management/v2/"
+        self.base_url_training_v1 = f"{base_url}api/training_input/v1/"
+        self.base_url_prediction_v1 = f"{base_url}api/prediction/v1/"
         self.token = None
         self._csrf_token = None
 
@@ -161,15 +154,14 @@ class EigenClient(Session):
         Returns:
             a `requests` `Response` object
         """
-        # full_url = f"http://{url}"
-        full_url = url
-        logger.info(f"=== HTTP CLIENT Requesting {method} {full_url}")
+        url = f"http://{url}"
+        logger.info(f"=== HTTP CLIENT Requesting {method} {url}")
         try:
-            response = super().request(method, full_url, **kwargs)
+            response = super().request(method, url, **kwargs)
             self._raise_for_status(response)
 
             if response.headers.get("Deprecation"):
-                logger.warning("The url '%s' is deprecated", full_url)
+                logger.warning("The url '%s' is deprecated", url)
 
             return response
         except HTTPError as exc:
@@ -182,7 +174,7 @@ class EigenClient(Session):
             logger.info("New authentication token created - reattempting request")
 
         raise AuthRetriesExceededException(
-            f"Auth token has expired and retries exceeded for url: {full_url}"
+            f"Auth token has expired and retries exceeded for url: {url}"
         )
 
     def _refresh_auth(self) -> None:
@@ -207,26 +199,10 @@ class EigenClient(Session):
         username = username or self.username
         password = password or self.password
 
-        # localhost:8283/auth/v1/token/
-        # FIXME: results in # auth/v1/token/auth/v1/token/
-        # token_url = urljoin(self.auth_url, "auth/v1/token/")
-        # logger.info(f"=== token_url === : {token_url}")
-
-        # hard coded just to check if can make request to container via localhost
-        # hc_token_url = "http://localhost:8283/v1/token/"
-        # hc_token_url = "eigenapi:8283/v1/token/"
-        hc_token_url = "http://eigenapi:8283/auth/v1/token/"
-        # TODO remove
-        logger.info(f"Authenticating with username: {username}")
-        logger.info(f"Authenticating with password: {password}")
-        # logger.info(f"Authenticating with url: {self.auth_url}")
-
         # Token will be stored in the session's cookiejar
         response = self.post(
-            url=hc_token_url,
-            # url=self.auth_url,
+            url=self.auth_url,
             json={"password": password, "username": username},
-            # verify=False,
         )
         self._raise_for_status(response)
 
@@ -270,8 +246,10 @@ class EigenClient(Session):
 
         return self._csrf_token
 
+    # FIXME request gets a 500
     def create_project(self, name: str, description: str) -> dict[str, Any]:
-        url = urljoin(self.base_url_project_management_v2, "projects")
+        url = f"{self.base_url_project_management_v2}projects/"
+        logger.info(f"=== Client :: Creating project with url {url}")
         res = self.post(url, json={"name": name, "description": description})
         self._raise_for_status(res)
         res_json = res.json()
