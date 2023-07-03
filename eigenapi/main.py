@@ -2,6 +2,8 @@
 Mock Eigen API
 """
 import random
+import uuid
+from datetime import datetime
 from logging import getLogger
 
 from fastapi import FastAPI
@@ -33,9 +35,19 @@ class ProjectItem(BaseModel):
 
 @app.post("/api/project_management/v2/projects/")
 def create_project(item: ProjectItem):
+    """
+    Provides a mock response for the Eigen create project endpoint
+    """
     project_id = random.randint(1, 100)
-    # TODO data shape of the response?
-    data = {"project_id": project_id}
+    data = {
+        "guid": str(uuid.uuid4()),
+        "document_type_id": project_id,
+        "name": item.name,
+        "description": item.description,
+        "created_at": datetime.utcnow().timestamp(),
+        "language": "english",
+        "use_numerical_confidence_predictions": True,
+    }
     return JSONResponse(content=data)
 
 

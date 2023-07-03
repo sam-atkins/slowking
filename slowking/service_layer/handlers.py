@@ -84,7 +84,8 @@ def create_project(
         username=event.username,
         password=password,
     )
-    client.create_project(name=event.name, description=event.benchmark_type)
+    project = client.create_project(name=event.name, description=event.benchmark_type)
+    logger.info(f"=== create_project :: project response === : {project}")
 
     # TODO use uow to persist project to benchmark aggregate
     with uow:
