@@ -25,7 +25,7 @@ This is a proof of concept benchmarking app/tool with an event-driven architectu
 ## Setup
 
 ```shell
-docker-compose up --build
+task build && task up
 ```
 
 There are also various tasks in the Taskfile:
