@@ -97,11 +97,21 @@ tasks:
       - source .venv/bin/activate
       - mypy . --check-untyped-defs
 
+  lint:
+    desc: Run ruff
+    cmds:
+      - ruff --fix .
+
+  black:
+    desc: Run black
+    cmds:
+      - black slowking/ eigenapi/ tests/
+
   fmt:
     desc: "Formats code using ruff and black"
     cmds:
-      - ruff --fix .
-      - black .
+      - task: lint
+      - task: black
 
   test:
     desc: Run tests (locally, not in Docker)
