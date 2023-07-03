@@ -26,6 +26,7 @@ def main():
         assign_channel_event_to_handler(message, bus)
 
 
+# NOTE: Ask Andrew if there is clever Pythonic way of doing this?
 def assign_channel_event_to_handler(
     message: dict[Any, Any], bus: messagebus.MessageBus
 ):
@@ -42,6 +43,8 @@ def assign_channel_event_to_handler(
     match topic:
         case events.EventChannelEnum.BENCHMARK_CREATED.value:
             publish_benchmark_created_event(payload, bus)
+        case events.EventChannelEnum.PROJECT_CREATED.value:
+            publish_project_created_event(payload, bus)
         case _:
             logger.warning(f"Channel {channel} not found for message: {message}")
             return
@@ -59,6 +62,16 @@ def publish_benchmark_created_event(message_payload, bus):
         target_release_version=message_payload["target_release_version"],
         username=message_payload["username"],
         password=message_payload["password"],
+    )
+    bus.handle(event)
+
+
+def publish_project_created_event(message_payload, bus):
+    logger.info(f"publish_project_created_event with payload: {message_payload}")
+    event = events.ProjectCreated(
+        channel=events.EventChannelEnum.PROJECT_CREATED,
+        target_url=message_payload["target_url"],
+        project_id=message_payload["project_id"],
     )
     bus.handle(event)
 

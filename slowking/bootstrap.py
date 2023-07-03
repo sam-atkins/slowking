@@ -32,7 +32,7 @@ def bootstrap(
     injected_event_handlers: dict[Type[events.Event], list[Callable]] = {
         events.BenchmarkCreated: [
             lambda e: handlers.get_artifacts(e),
-            lambda e: handlers.create_project(e, uow),
+            lambda e: handlers.create_project(e, uow, publish),
         ],
         events.ProjectCreated: [
             lambda e: handlers.upload_documents(e),

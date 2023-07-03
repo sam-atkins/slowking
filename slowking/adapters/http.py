@@ -246,13 +246,14 @@ class EigenClient(Session):
 
         return self._csrf_token
 
-    def create_project(self, name: str, description: str) -> dict[str, Any]:
+    def create_project(self, name: str, description: str) -> ProjectStruct:
         url = f"{self.base_url_project_management_v2}projects/"
         res = self.post(url, json={"name": name, "description": description})
         self._raise_for_status(res)
         res_json = res.json()
         logger.info(f"=== Client :: Create project response {res}")
-        return res_json
+        result = ProjectStruct(**res_json)
+        return result
 
     # TODO document uploader - use this or update by copying from ECU?
     def upload_files(
@@ -280,6 +281,17 @@ class EigenClient(Session):
         )
         self._raise_for_status(res)
         return res.json()
+
+
+@dataclass
+class ProjectStruct:
+    guid: str
+    document_type_id: int
+    name: str
+    description: str
+    created_at: str
+    language: str
+    use_numerical_confidence_predictions: bool
 
 
 @dataclass

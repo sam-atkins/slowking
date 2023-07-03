@@ -63,6 +63,7 @@ def get_artifacts(event: events.BenchmarkCreated):
 def create_project(
     event: events.BenchmarkCreated,
     uow: unit_of_work.AbstractUnitOfWork,
+    publish: Callable[[events.Event], None],
 ):
     logger.info("=== Called create_project ===")
     logger.info(f"create_project event: {event}")
@@ -74,7 +75,7 @@ def create_project(
     )
     project = client.create_project(name=event.name, description=event.benchmark_type)
     logger.info(f"=== create_project :: project response === : {project}")
-    project_id = project.get("document_type_id")
+    project_id = project.document_type_id
 
     with uow:
         benchmark = uow.benchmarks.get_by_id(event.benchmark_id)
@@ -84,7 +85,13 @@ def create_project(
         uow.commit()
 
     logger.info("=== Create Project completed ===")
-    # TODO publish event ProjectCreated
+    publish(
+        events.ProjectCreated(
+            channel=events.EventChannelEnum.PROJECT_CREATED,
+            target_url=event.target_url,
+            project_id=project_id,
+        )
+    )
 
 
 def upload_documents(event: events.ProjectCreated):
