@@ -1,6 +1,8 @@
 # https://taskfile.dev
 version: '3'
 
+dotenv: ['.env']
+
 tasks:
   default:
     desc: Build and run the application
@@ -24,6 +26,27 @@ tasks:
     desc: Make a request to the application using HTTPie to start a benchmark
     cmds:
       - http POST localhost:8091/api/v1/benchmarks/start @./tests/data/payload.json
+
+  # api-token:
+  #   desc: Make a request to the application using HTTPie to /token endpoint
+  #   cmds:
+  #     - http -v POST localhost:8001/auth/v1/token/ @./tests/data/auth.json
+
+  api-eigen-health:
+    desc: Make a request to the Mock Eigen API health/ endpoint using HTTPie
+    cmds:
+      - http localhost:8283/health
+
+  api-slowking-health:
+    desc: Make a request to the slowking health/ endpoint using HTTPie
+    cmds:
+      - http localhost:8283/health
+
+  api-health:
+    desc: Make requests to the /health endpoints using HTTPie
+    cmds:
+      - task: api-eigen-health
+      - task: api-slowking-health
 
   event:
     desc: Make a request to the application using HTTPie with a test event
@@ -61,17 +84,34 @@ tasks:
       - poetry@1.5.1 install
       - pre-commit install
 
+  update:
+    desc: Update dependencies (locally, not in Docker)
+    cmds:
+      - pyenv local
+      - source .venv/bin/activate
+      - poetry@1.5.1 install
+
   mypy:
     desc: Run type checking (locally, not in Docker)
     cmds:
       - source .venv/bin/activate
       - mypy . --check-untyped-defs
 
+  lint:
+    desc: Run ruff
+    cmds:
+      - ruff --fix .
+
+  black:
+    desc: Run black
+    cmds:
+      - black slowking/ eigenapi/ tests/
+
   fmt:
     desc: "Formats code using ruff and black"
     cmds:
-      - ruff --fix .
-      - black .
+      - task: lint
+      - task: black
 
   test:
     desc: Run tests (locally, not in Docker)

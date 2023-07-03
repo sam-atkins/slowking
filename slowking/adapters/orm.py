@@ -14,15 +14,15 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import registry, relationship
 
-from src.domain import model
+from slowking.domain import model
 
 metadata = MetaData()
 mapper_registry = registry()
 
 logger = logging.getLogger(__name__)
 
-benchmarks = Table(
-    "benchmarks",
+benchmark = Table(
+    "benchmark",
     metadata,
     Column("id", Integer, primary_key=True, autoincrement=True),
     Column("name", String(255)),
@@ -30,32 +30,33 @@ benchmarks = Table(
 )
 
 
-target_instances = Table(
-    "target_instances",
-    metadata,
-    Column("id", Integer, primary_key=True, autoincrement=True),
-    Column("benchmark_id", ForeignKey("benchmarks.id")),
-    Column("target_infra", String(255)),
-    Column("target_url", String(255)),
-    Column("username", String(255)),
-    Column("password", String(255)),
-)
+# # TODO simplified "hack", move this into the BM class/table
+# target_instance = Table(
+#     "target_instance",
+#     metadata,
+#     Column("id", Integer, primary_key=True, autoincrement=True),
+#     Column("benchmark_id", ForeignKey("benchmark.id")),
+#     Column("target_infra", String(255)),
+#     Column("target_url", String(255)),
+#     Column("username", String(255)),
+#     Column("password", String(255)),
+# )
 
-projects = Table(
-    "projects",
+project = Table(
+    "project",
     metadata,
     Column("id", Integer, primary_key=True, autoincrement=True),
-    Column("benchmark_id", ForeignKey("benchmarks.id")),
-    Column("target_instance_id", ForeignKey("target_instances.id")),
+    Column("benchmark_id", ForeignKey("benchmark.id")),
+    # Column("target_instance_id", ForeignKey("target_instance.id")),
     Column("name", String(255)),
     Column("eigen_project_id", Integer(), nullable=True),
 )
 
-documents = Table(
-    "documents",
+document = Table(
+    "document",
     metadata,
     Column("id", Integer, primary_key=True, autoincrement=True),
-    Column("project_id", ForeignKey("projects.id")),
+    Column("project_id", ForeignKey("project.id")),
     Column("name", String(255)),
     Column("file_path", String(255)),
     Column("document_id", Integer()),
@@ -66,24 +67,27 @@ documents = Table(
 
 def start_mappers():
     logger.info("Starting ORM mappers...")
-    documents_mapper = mapper_registry.map_imperatively(model.Document, documents)
+    document_mapper = mapper_registry.map_imperatively(model.Document, document)
     project_mapper = mapper_registry.map_imperatively(
         model.Project,
-        projects,
+        project,
         properties={
-            "documents": relationship(documents_mapper),
+            "document": relationship(document_mapper),
         },
     )
-    mapper_registry.map_imperatively(
-        model.TargetInstance,
-        target_instances,
-    )
+    # mapper_registry.map_imperatively(
+    #     model.TargetInstance,
+    #     target_instance,
+    # )
 
     mapper_registry.map_imperatively(
         model.Benchmark,
-        benchmarks,
+        benchmark,
         properties={
-            "projects": relationship(project_mapper, secondary=target_instances)
+            "project": relationship(
+                project_mapper,
+                uselist=False,
+            ),
         },
     )
     logger.info("ORM mapping complete.")

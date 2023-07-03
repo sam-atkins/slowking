@@ -5,7 +5,7 @@ could be extended to send emails, Slack messages, etc.
 import abc
 import logging.config
 
-from src.domain import events
+from slowking.domain import events
 
 logger = logging.getLogger(__name__)
 

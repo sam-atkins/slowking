@@ -3,8 +3,8 @@ API Router
 """
 from fastapi import FastAPI
 
-from src.config import settings
-from src.entrypoints.http import router
+from slowking.config import settings
+from slowking.entrypoints.http import router
 
 app = FastAPI()
 app.include_router(router)

@@ -8,10 +8,10 @@ from logging import getLogger
 from fastapi import APIRouter, BackgroundTasks, Request, Response
 from pydantic import BaseModel
 
-from src import bootstrap, config
-from src.adapters.redis_event_publisher import publish
-from src.config import settings
-from src.domain import commands
+from slowking import bootstrap, config
+from slowking.adapters.redis_event_publisher import publish
+from slowking.config import settings
+from slowking.domain import commands
 
 router = APIRouter(prefix=settings.API_BENCHMARK_NAMESPACE_V1_STR, tags=["benchmarks"])
 

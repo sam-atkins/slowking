@@ -1,12 +1,12 @@
 import logging.config
 from typing import Callable, Type
 
-from src.adapters import orm, redis_event_publisher
-from src.adapters.db_engine import init_db
-from src.adapters.notifications import AbstractNotifications, LogNotifications
-from src.config import settings
-from src.domain import commands, events
-from src.service_layer import handlers, messagebus, unit_of_work
+from slowking.adapters import orm, redis_event_publisher
+from slowking.adapters.db_engine import init_db
+from slowking.adapters.notifications import AbstractNotifications, LogNotifications
+from slowking.config import settings
+from slowking.domain import commands, events
+from slowking.service_layer import handlers, messagebus, unit_of_work
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ def bootstrap(
     injected_event_handlers: dict[Type[events.Event], list[Callable]] = {
         events.BenchmarkCreated: [
             lambda e: handlers.get_artifacts(e),
-            lambda e: handlers.create_project(e, uow),
+            lambda e: handlers.create_project(e, uow, publish),
         ],
         events.ProjectCreated: [
             lambda e: handlers.upload_documents(e),

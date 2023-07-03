@@ -3,8 +3,8 @@ from typing import Any, Optional
 
 from pydantic import BaseSettings, PostgresDsn, validator
 
-from src.domain.commands import CommandChannelEnum
-from src.domain.events import EventChannelEnum
+from slowking.domain.commands import CommandChannelEnum
+from slowking.domain.events import EventChannelEnum
 
 logger = getLogger(__name__)
 
@@ -13,15 +13,18 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     API_BENCHMARK_NAMESPACE_V1_STR: str = f"{API_V1_STR}/benchmarks"
 
-    REDIS_HOST: str
-    REDIS_PORT: str
+    SLOWKING_REDIS_HOST: str
+    SLOWKING_REDIS_PORT: str
     REDIS_CONFIG: Optional[dict[str, Any]] = None
 
     @validator("REDIS_CONFIG", pre=True)
     def assemble_redis_config(cls, v: Optional[str], values: dict[str, str]) -> Any:
         if isinstance(v, str):
             return v
-        return {"host": values.get("REDIS_HOST"), "port": values.get("REDIS_PORT")}
+        return {
+            "host": values.get("SLOWKING_REDIS_HOST"),
+            "port": values.get("SLOWKING_REDIS_PORT"),
+        }
 
     REDIS_SUBSCRIBE_CHANNELS: list[str] = []
 
@@ -34,11 +37,11 @@ class Settings(BaseSettings):
         channels = event_channels + cmd_channels
         return channels
 
-    DB_HOST: str
-    DB_PORT: str
-    POSTGRES_DB: str
-    POSTGRES_PASSWORD: str
-    POSTGRES_USER: str
+    SLOWKING_DB_HOST: str
+    SLOWKING_DB_PORT: str
+    SLOWKING_POSTGRES_DB: str
+    SLOWKING_POSTGRES_PASSWORD: str
+    SLOWKING_POSTGRES_USER: str
     SQLALCHEMY_DATABASE_URI: Optional[PostgresDsn] = None
 
     @validator("SQLALCHEMY_DATABASE_URI", pre=True)
@@ -47,11 +50,11 @@ class Settings(BaseSettings):
             return v
         dsn = PostgresDsn.build(
             scheme="postgresql",
-            user=values.get("POSTGRES_USER"),
-            password=values.get("POSTGRES_PASSWORD"),
-            host=values.get("DB_HOST", ""),
-            port=values.get("DB_PORT"),
-            path=f"/{values.get('POSTGRES_DB') or ''}",
+            user=values.get("SLOWKING_POSTGRES_USER"),
+            password=values.get("SLOWKING_POSTGRES_PASSWORD"),
+            host=values.get("SLOWKING_DB_HOST", ""),
+            port=values.get("SLOWKING_DB_PORT"),
+            path=f"/{values.get('SLOWKING_POSTGRES_DB') or ''}",
         )
         return dsn
 
