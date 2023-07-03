@@ -246,10 +246,8 @@ class EigenClient(Session):
 
         return self._csrf_token
 
-    # FIXME request gets a 500
     def create_project(self, name: str, description: str) -> dict[str, Any]:
         url = f"{self.base_url_project_management_v2}projects/"
-        logger.info(f"=== Client :: Creating project with url {url}")
         res = self.post(url, json={"name": name, "description": description})
         self._raise_for_status(res)
         res_json = res.json()

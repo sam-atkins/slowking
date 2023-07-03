@@ -4,10 +4,9 @@ Mock Eigen API
 import random
 from logging import getLogger
 
-from fastapi import FastAPI, Response
-
-# from fastapi import FastAPI, Response, UploadFile
+from fastapi import FastAPI
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 
 logger = getLogger(__name__)
 
@@ -27,12 +26,17 @@ def auth_token():
     return response
 
 
-@app.post("/api/project_management/v2/projects")
-def create_project():
+class ProjectItem(BaseModel):
+    name: str
+    description: str | None
+
+
+@app.post("/api/project_management/v2/projects/")
+def create_project(item: ProjectItem):
     project_id = random.randint(1, 100)
     # TODO data shape of the response?
     data = {"project_id": project_id}
-    return Response(content=data)
+    return JSONResponse(content=data)
 
 
 # @app.post("api/v1/document_uploader/")
