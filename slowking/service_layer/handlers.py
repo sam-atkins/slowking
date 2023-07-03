@@ -2,7 +2,7 @@ import logging
 from datetime import datetime
 from typing import Callable
 
-# from src.adapters.http import EigenClient
+from slowking.adapters.http import EigenClient
 from slowking.domain import commands, events, model
 from slowking.service_layer import unit_of_work
 
@@ -79,12 +79,12 @@ def create_project(
     password = event.password
     logger.info(f"=== create_project :: password === : {password}")
 
-    # client = EigenClient(
-    #     base_url=event.target_url,
-    #     username=event.username,
-    #     password=password,
-    # )
-    # client.create_project(name=event.name, description=event.benchmark_type)
+    client = EigenClient(
+        base_url=event.target_url,
+        username=event.username,
+        password=password,
+    )
+    client.create_project(name=event.name, description=event.benchmark_type)
 
     # TODO use uow to persist project to benchmark aggregate
     with uow:

@@ -74,7 +74,10 @@ class EigenClient(Session):
         if not base_auth_url.endswith("/"):
             base_auth_url += "/"
 
-        self.base_url = base_url
+        # self.base_url = urljoin("http://", base_url)
+        # self.base_auth_url = urljoin("http://", base_auth_url)
+        # logger.info(f"=== self.base_url === : {self.base_url}")
+        # logger.info(f"=== self.base_auth_url === : {self.base_auth_url}")
         self.base_url_v1 = urljoin(base_url, "api/v1/")
         self.auth_url = urljoin(base_auth_url, "auth/v1/token/")
         self.base_url_v1 = urljoin(base_url, "api/v1/")
@@ -158,13 +161,15 @@ class EigenClient(Session):
         Returns:
             a `requests` `Response` object
         """
-        logger.info(f"=== HTTP CLIENT Requesting {method} {url}")
+        # full_url = f"http://{url}"
+        full_url = url
+        logger.info(f"=== HTTP CLIENT Requesting {method} {full_url}")
         try:
-            response = super().request(method, url, **kwargs)
+            response = super().request(method, full_url, **kwargs)
             self._raise_for_status(response)
 
             if response.headers.get("Deprecation"):
-                logger.warning("The url '%s' is deprecated", url)
+                logger.warning("The url '%s' is deprecated", full_url)
 
             return response
         except HTTPError as exc:
@@ -177,7 +182,7 @@ class EigenClient(Session):
             logger.info("New authentication token created - reattempting request")
 
         raise AuthRetriesExceededException(
-            f"Auth token has expired and retries exceeded for url: {url}"
+            f"Auth token has expired and retries exceeded for url: {full_url}"
         )
 
     def _refresh_auth(self) -> None:
@@ -201,14 +206,25 @@ class EigenClient(Session):
         """
         username = username or self.username
         password = password or self.password
+
+        # localhost:8283/auth/v1/token/
+        # FIXME: results in # auth/v1/token/auth/v1/token/
+        # token_url = urljoin(self.auth_url, "auth/v1/token/")
+        # logger.info(f"=== token_url === : {token_url}")
+
+        # hard coded just to check if can make request to container via localhost
+        # hc_token_url = "http://localhost:8283/v1/token/"
+        # hc_token_url = "eigenapi:8283/v1/token/"
+        hc_token_url = "http://eigenapi:8283/auth/v1/token/"
         # TODO remove
         logger.info(f"Authenticating with username: {username}")
         logger.info(f"Authenticating with password: {password}")
-        logger.info(f"Authenticating with url: {self.auth_url}")
+        # logger.info(f"Authenticating with url: {self.auth_url}")
 
         # Token will be stored in the session's cookiejar
         response = self.post(
-            url=self.auth_url,
+            url=hc_token_url,
+            # url=self.auth_url,
             json={"password": password, "username": username},
             # verify=False,
         )

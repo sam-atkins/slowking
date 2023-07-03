@@ -19,7 +19,7 @@ def health():
     return {"status": "ok"}
 
 
-@app.get("/auth/v1/token/")
+@app.post("/auth/v1/token/")
 def auth_token():
     content = {"message": "Come to the dark side, we have cookies"}
     response = JSONResponse(content=content)

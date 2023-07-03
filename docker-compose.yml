@@ -75,6 +75,8 @@ services:
     env_file:
       - .env
     container_name: eigenapi
+    ports:
+      - "8283:8283"
     volumes:
       - ./eigenapi:/home/app/src
 
