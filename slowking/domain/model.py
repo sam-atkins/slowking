@@ -85,12 +85,12 @@ class Document:
         self,
         name: str,
         file_path: str,
-        document_id: str = "",
+        eigen_document_id: str = "",
         eigen_project_id: str = "",
     ):
         self.name = name
         self.file_path = file_path
-        self.document_id = document_id
+        self.eigen_document_id = eigen_document_id
         self.eigen_project_id = eigen_project_id
         # self.version_number = version_number: int = 0,  # ?
 

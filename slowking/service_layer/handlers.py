@@ -1,4 +1,5 @@
 import logging
+import pathlib
 from datetime import datetime
 from typing import Callable
 
@@ -97,36 +98,68 @@ def create_project(
 def upload_documents(event: events.ProjectCreated):
     logger.info("=== Called upload_documents ===")
     logger.info(f"upload_documents event: {event}")
+    # use hardcoded artifacts dir to get docs for upload
+    files = pathlib.Path("/home/app/artifacts").glob("*.txt")
+    logger.info(f"=== upload_documents :: found files === : {files}")
+    f_list = list(files.__iter__())
+    logger.info(f"=== upload_documents :: f_list === : {f_list}")
+    # use EigenClient to upload documents
+    # end
 
 
-# TODO inject in bootstrap
 def update_document(
-    cmd: commands.UpdateDocument, publish: Callable[[events.Event], None]
+    cmd: commands.UpdateDocument,
+    uow: unit_of_work.AbstractUnitOfWork,
+    publish: Callable[[events.Event], None],
 ):
     logger.info("=== Called update_document ===")
     logger.info(f"update_document cmd: {cmd}")
     # TODO use UOW domain model to update a document in the db
     # document_id is the id of the document updated in the db
-    document_id = 1
+    # document_id = 1
 
-    # NOTE, `benchmark.project.documents` will raise if there are no documents
+    # All WIP, not tested
+    # doc = model.Document(
+    #     name=cmd.document_name,
+    #     file_path="",
+    #     eigen_document_id=cmd.eigen_document_id,
+    #     eigen_project_id=cmd.eigen_project_id,
+    #     # end_time=cmd.end_time,
+    #     # start_time=cmd.start_time,
+    # )
+    # # TODO fix type warnings
+    # doc.upload_time_start = cmd.start_time
+    # doc.upload_time_end = cmd.end_time
 
-    publish(
-        events.DocumentUpdated(
-            channel=events.EventChannelEnum.DOCUMENT_UPDATED,
-            document_id=document_id,
-            document_name=cmd.document_name,
-            eigen_document_id=cmd.eigen_document_id,
-            eigen_project_id=cmd.eigen_project_id,
-            end_time=cmd.end_time,
-            start_time=cmd.start_time,
-        )
-    )
+    # with uow:
+    #     bm = uow.benchmarks.get_by_document_name_and_project_id(
+    #         name=cmd.document_name, project_id=cmd.eigen_project_id
+    #     )
+    #     logger.info(f"=== bm === : {bm}")
+
+    #     # NOTE, `benchmark.project.documents` will raise if there are no documents
+    #     try:
+    #         bm.project.documents.append(doc)
+    #     except Exception as e:
+    #         logger.exception(e)
+    #     uow.benchmarks.add(bm)
+
+    # publish(
+    #     events.DocumentUpdated(
+    #         channel=events.EventChannelEnum.DOCUMENT_UPDATED,
+    #         document_id=cmd.eigen_document_id,  # fix name and int or str
+    #         document_name=cmd.document_name,
+    #         eigen_project_id=cmd.eigen_project_id,
+    #         # end_time=cmd.end_time,
+    #         # start_time=cmd.start_time,
+    #     )
+    # )
 
 
-# TODO inject in bootstrap
 def check_all_documents_uploaded(
-    event: events.DocumentUpdated, publish: Callable[[events.Event], None]
+    event: events.DocumentUpdated,
+    uow: unit_of_work.AbstractUnitOfWork,
+    publish: Callable[[events.Event], None],
 ):
     logger.info("=== Called check_all_documents_uploaded ===")
     logger.info(f"check_all_documents_uploaded event: {event}")

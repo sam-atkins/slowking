@@ -36,12 +36,11 @@ class BenchmarkCreated(Event):
 
 class DocumentUpdated(Event):
     channel: Literal[EventChannelEnum.DOCUMENT_UPDATED]
-    document_id: int
+    document_id: int  # TODO eigen doc id or slowking doc id?
     document_name: str
-    eigen_document_id: str
     eigen_project_id: str
-    end_time: str | None  # TODO: change to datetime
-    start_time: str | None  # TODO: change to datetime
+    # end_time: str | None  # TODO: change to datetime
+    # start_time: str | None  # TODO: change to datetime
 
 
 class ProjectCreated(Event):

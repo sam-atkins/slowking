@@ -68,8 +68,8 @@ class SqlAlchemyRepository(AbstractRepository):
             self.session.query(model.Benchmark)
             .join(model.Document)
             .filter(
-                orm.benchmarks.c.project_eigen_project_id == project_id,
-                orm.documents.c.name == name,
+                orm.benchmark.c.project.eigen_project_id == project_id,
+                orm.document.c.name == name,
             )
             .first()
         )
