@@ -30,7 +30,11 @@ class Benchmark:
         name: str,
         benchmark_type: str,
         release_version: str,
-        target_instance: TargetInstance,
+        # target_instance: TargetInstance,
+        target_infra: str,
+        target_url: str,
+        username: str,
+        password: str,
         project: Project,
         version_number: int = 0,
     ):
@@ -38,7 +42,11 @@ class Benchmark:
         self.benchmark_type = benchmark_type
         self.release_version = release_version
         self.version_number = version_number
-        self.target_instance = target_instance
+        # self.target_instance = target_instance
+        self.target_infra = target_infra
+        self.target_url = target_url
+        self.username = username
+        self.password = password
         # artifacts (documents etc) - get from config? or hard code in the handler?
         self.project = project
 
@@ -55,26 +63,29 @@ class Benchmark:
         return hash((self.name, self.version_number))
 
 
-class TargetInstance:
-    def __init__(
-        self,
-        target_infra: str,
-        target_url: str,
-        username: str,
-        password: str,
-    ):
-        self.target_infra = target_infra
-        self.target_url = target_url
-        self.username = username
-        self.password = password
+# class TargetInstance:
+#     def __init__(
+#         self,
+#         target_infra: str,
+#         target_url: str,
+#         username: str,
+#         password: str,
+#     ):
+#         self.target_infra = target_infra
+#         self.target_url = target_url
+#         self.username = username
+#         self.password = password
 
-    def __repr__(self):
-        return f"<TargetInstance {self.target_url}>"
+#     def __repr__(self):
+#         return f"<TargetInstance {self.target_url}>"
 
 
 class Project:
     def __init__(
-        self, name: str, documents: list[Document], eigen_project_id: int | None = None
+        self,
+        name: str,
+        documents: list[Document] = [],
+        eigen_project_id: int | None = None,
     ):
         self.name = name
         self.documents = documents
