@@ -19,10 +19,13 @@ from tenacity import retry, stop_after_attempt, wait_fixed, wait_random
 logger = logging.getLogger(__name__)
 
 
-AUTH_RETRIES = 2
+RETRIES = 2
+WAIT_FIXED = 3
+WAIT_MIN = 0
+WAIT_MAX = 2
 
 
-class HttpClient(Session):
+class EigenClient(Session):
     """Class for interacting with the Eigen application's REST API."""
 
     EXPIRED_TOKEN_DETAIL = "Token has expired."
@@ -66,29 +69,21 @@ class HttpClient(Session):
             base_url += "/"
 
         if not base_auth_url:
-            # TODO hard code in the auth url for now
-            # TODO try container name eigen_dev_eigen-auth-webserver_1
-            # base_auth_url = "http://localhost:8001"
-            # base_auth_url = "http://eigen_dev_eigen-auth-webserver_1:8001"
-
-            # connects but 400 error, Invalid HTTP_HOST header
-            # base_auth_url = "http://eigen_dev_eigen-auth-webserver_1:8000"
-            base_auth_url = "http://eigen_dev_eigen-auth-webserver_1:8001/"
-            # base_auth_url = "http://localhost:8001/auth/v1/token/"
-            # base_auth_url = "http://0.0.0.0:8001/auth/v1/token/"
-            # base_auth_url = "http://0.0.0.0:8001/"
-            # base_auth_url = "http://localhost:8001/"
+            base_auth_url = base_url
 
         if not base_auth_url.endswith("/"):
             base_auth_url += "/"
 
         self.base_url = base_url
-        self.base_url_v1 = f"{base_url}api/v1/"
-        self.base_url_v2 = f"{base_url}api/v2/"
-        self.base_url_project_management_v2 = f"{base_url}api/project_management/v2/"
-        self.auth_url = f"{base_auth_url}auth/v1/token/"
-        self.base_url_training_v1 = f"{base_url}api/training_input/v1/"
-        self.base_url_prediction_v1 = f"{base_url}api/prediction/v1/"
+        self.base_url_v1 = urljoin(base_url, "api/v1/")
+        self.auth_url = urljoin(base_auth_url, "auth/v1/token/")
+        self.base_url_v1 = urljoin(base_url, "api/v1/")
+        self.base_url_v2 = urljoin(base_url, "api/v2/")
+        self.base_url_project_management_v2 = urljoin(
+            base_url, "api/project_management/v2/"
+        )
+        self.base_url_training_v1 = urljoin(base_url, "api/training_input/v1/")
+        self.base_url_prediction_v1 = urljoin(base_url, "api/prediction/v1/")
         self.token = None
         self._csrf_token = None
 
@@ -142,7 +137,8 @@ class HttpClient(Session):
             raise HTTPError(http_error_msg, response=response)
 
     @retry(
-        wait=wait_fixed(3) + wait_random(0, 2), stop=stop_after_attempt(AUTH_RETRIES)
+        wait=wait_fixed(WAIT_FIXED) + wait_random(WAIT_MIN, WAIT_MAX),
+        stop=stop_after_attempt(RETRIES),
     )
     def request(self, method: str, url: str, **kwargs) -> Response:
         """Override the base Session.request.
@@ -162,41 +158,9 @@ class HttpClient(Session):
         Returns:
             a `requests` `Response` object
         """
-        # retry_attempts = 0
-
-        # TODO replace with tenacity
-        # while retry_attempts <= AUTH_RETRIES:
-        #     try:
-        #         response = super().request(method, url, **kwargs)
-        #         self._raise_for_status(response)
-
-        #         if response.headers.get("Deprecation"):
-        #             logger.warning("The url '%s' is deprecated", url)
-
-        #         return response
-        #     except HTTPError as exc:
-        #         if self._is_token_expiry(exc) is False:
-        #             raise exc
-        #         logger.info("Token expired, attempting to reauthenticate")
-
-        #         self._refresh_auth()
-
-        #         logger.info("New authentication token created - reattempting request")
-
-        #     retry_attempts += 1
         logger.info(f"=== HTTP CLIENT Requesting {method} {url}")
-        # http://localhost:8001/auth/v1/token/
-        headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-            "Host": "eigen_dev_eigen-auth-webserver_1:8001",
-            # "Host": "localhost",
-            # "HTTP_HOST": "slowking-event-consumer",
-        }
-
         try:
-            # response = super().request(method, url, **kwargs)
-            response = super().request(method, url, headers, **kwargs)
+            response = super().request(method, url, **kwargs)
             self._raise_for_status(response)
 
             if response.headers.get("Deprecation"):
@@ -214,7 +178,6 @@ class HttpClient(Session):
 
         raise AuthRetriesExceededException(
             f"Auth token has expired and retries exceeded for url: {url}"
-            # f"retries count: {retry_attempts} - retry limit: {AUTH_RETRIES}"
         )
 
     def _refresh_auth(self) -> None:
@@ -246,7 +209,6 @@ class HttpClient(Session):
         # Token will be stored in the session's cookiejar
         response = self.post(
             url=self.auth_url,
-            # json={"username": username, "password": password},
             json={"password": password, "username": username},
             # verify=False,
         )
@@ -302,28 +264,12 @@ class HttpClient(Session):
 
     # TODO document uploader - use this or update by copying from ECU?
     def upload_files(
-        self, eigen_document_type_id: str, files: list[BirdDocument]
+        self, project_id: int, files: list[BirdDocument]
     ) -> list[dict[str, Any]]:
         """Upload files.
 
         Args:
-            eigen_document_type_id: the `document_type_id`
-            files: a list of files to upload
-
-        Returns:
-            the response from Eigen
-        """
-        return self.upload_files_v3_which_is_actually_at_v1(
-            eigen_document_type_id, files
-        )
-
-    def upload_files_v3_which_is_actually_at_v1(
-        self, eigen_document_type_id: str, files: list[BirdDocument]
-    ) -> list[dict[str, Any]]:
-        """Upload files.
-
-        Args:
-            eigen_document_type_id: the `document_type_id`
+            project_id: the id of the project to upload files to
             files: a list of files to upload
 
         Returns:
@@ -332,13 +278,13 @@ class HttpClient(Session):
         url = f"{self.base_url_v1}document_uploader/"
         res = self.post(
             url=url,
-            data={"document_type_id": eigen_document_type_id},
+            data={"document_type_id": project_id},
             files=[("files", (f.filename, f.data)) for f in files],
-            headers={
-                "X-CSRFToken": self.csrf_token,
-                "Referer": f"{self.base_url_v2}api-csrf-token/",
-            },
-            cookies={"csrftoken": self.csrf_token},
+            # headers={
+            #     "X-CSRFToken": self.csrf_token,
+            #     "Referer": f"{self.base_url_v2}api-csrf-token/",
+            # },
+            # cookies={"csrftoken": self.csrf_token},
         )
         self._raise_for_status(res)
         return res.json()

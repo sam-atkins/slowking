@@ -22,12 +22,12 @@ tasks:
       - task: env-file
       - docker-compose up
 
-  up-bus:
-    desc: Run the application via docker-compose
-    cmds:
-      - task: env-file
-      - source .venv/bin/activate
-      - poetry@1.5.1 run python -m src.entrypoints.event_consumer
+  # up-bus:
+  #   desc: Run the application via docker-compose
+  #   cmds:
+  #     - task: env-file
+  #     - source .venv/bin/activate
+  #     - poetry@1.5.1 run python -m src.entrypoints.event_consumer
 
   start:
     desc: Make a request to the application using HTTPie to start a benchmark
