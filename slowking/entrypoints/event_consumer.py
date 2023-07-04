@@ -61,7 +61,7 @@ def publish_benchmark_created_event(message_payload, bus):
         benchmark_type=message_payload["benchmark_type"],
         target_infra=message_payload["target_infra"],
         target_url=message_payload["target_url"],
-        target_release_version=message_payload["target_release_version"],
+        target_eigen_platform_version=message_payload["target_eigen_platform_version"],
         username=message_payload["username"],
         password=message_payload["password"],
     )

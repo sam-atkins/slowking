@@ -22,11 +22,20 @@ def create_benchmark(
     benchmark_id: int
 
     with uow:
-        project = model.Project(name=name)
+        documents = []
+        files = pathlib.Path("/home/app/artifacts").glob("*.txt")
+        for file in files:
+            documents.append(
+                model.Document(
+                    name=file.name,
+                    file_path=str(file),
+                )
+            )
+        project = model.Project(name=name, document=documents)
         bm = model.Benchmark(
             name=name,
             benchmark_type=cmd.benchmark_type,
-            release_version=cmd.target_release_version,
+            eigen_platform_version=cmd.target_eigen_platform_version,
             target_infra=cmd.target_infra,
             target_url=cmd.target_url,
             username=cmd.username,
@@ -49,7 +58,7 @@ def create_benchmark(
             benchmark_type=cmd.benchmark_type,
             target_infra=cmd.target_infra,
             target_url=cmd.target_url,
-            target_release_version=cmd.target_release_version,
+            target_eigen_platform_version=cmd.target_eigen_platform_version,
             username=cmd.username,
             password=cmd.password,
         )
@@ -100,15 +109,12 @@ def create_project(
 def upload_documents(event: events.ProjectCreated):
     logger.info("=== Called upload_documents ===")
     logger.info(f"upload_documents event: {event}")
-    # use hardcoded artifacts dir to get docs for upload
+    # TODO using hardcoded artifacts dir to get docs for upload, move to settings
     files = pathlib.Path("/home/app/artifacts").glob("*.txt")
     logger.info(f"=== upload_documents :: found files === : {files}")
     f_list = list(files.__iter__())
     logger.info(f"=== upload_documents :: f_list === : {f_list}")
 
-    # get benchmark from db? need id? or get from event
-
-    # use EigenClient to upload documents
     client = EigenClient(
         base_url=event.target_url,
         username=event.username,
@@ -126,35 +132,27 @@ def update_document(
 ):
     logger.info("=== Called update_document ===")
     logger.info(f"update_document cmd: {cmd}")
-    # TODO use UOW domain model to update a document in the db
-    # document_id is the id of the document updated in the db
-    # document_id = 1
+    with uow:
+        bm = uow.benchmarks.get_by_host_and_project_id(
+            host=cmd.benchmark_host_name, project_id=cmd.eigen_project_id
+        )
+        logger.info(f"=== bm === : {bm}")
 
-    # All WIP, not tested
-    # doc = model.Document(
-    #     name=cmd.document_name,
-    #     file_path="",
-    #     eigen_document_id=cmd.eigen_document_id,
-    #     eigen_project_id=cmd.eigen_project_id,
-    #     # end_time=cmd.end_time,
-    #     # start_time=cmd.start_time,
-    # )
-    # # TODO fix type warnings
-    # doc.upload_time_start = cmd.start_time
-    # doc.upload_time_end = cmd.end_time
+        documents = bm.project.document
+        logger.info(f"=== documents === : {documents}")
+        for doc in documents:
+            if doc.name == cmd.document_name:
+                logger.info(f"=== doc === : {doc}")
+                if cmd.start_time:
+                    doc.upload_time_start = datetime.fromtimestamp(cmd.start_time)
+                if cmd.end_time:
+                    doc.upload_time_end = datetime.fromtimestamp(cmd.end_time)
+                logger.info(f"=== doc updated === : {doc}")
+                break
 
-    # with uow:
-    #     bm = uow.benchmarks.get_by_document_name_and_project_id(
-    #         name=cmd.document_name, project_id=cmd.eigen_project_id
-    #     )
-    #     logger.info(f"=== bm === : {bm}")
-
-    #     # NOTE, `benchmark.project.documents` raises if there are no documents? Fix it
-    #     try:
-    #         bm.project.documents.append(doc)
-    #     except Exception as e:
-    #         logger.exception(e)
-    #     uow.benchmarks.add(bm)
+        uow.benchmarks.add(bm)
+        logger.info(f"=== commit bm with uow  === : {bm}")
+        uow.commit()
 
     # publish(
     #     events.DocumentUpdated(

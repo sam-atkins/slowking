@@ -26,7 +26,7 @@ class CreateBenchmark(Command):
     benchmark_type: str
     target_infra: str
     target_url: str
-    target_release_version: str
+    target_eigen_platform_version: str
     username: str
     password: SecretStr
 
@@ -36,6 +36,6 @@ class UpdateDocument(Command):
     document_name: str
     eigen_document_id: str
     eigen_project_id: str
-    benchmark_host_name: str  # the same as target_url, rename?
-    end_time: str | None  # TODO: change to datetime
-    start_time: str | None  # TODO: change to datetime
+    benchmark_host_name: str  # TODO the same as target_url, rename?
+    end_time: float | None
+    start_time: float | None

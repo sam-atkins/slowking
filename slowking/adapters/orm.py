@@ -27,27 +27,19 @@ benchmark = Table(
     Column("id", Integer, primary_key=True, autoincrement=True),
     Column("name", String(255)),
     Column("benchmark_type", String(255)),
+    Column("eigen_platform_version", String(255)),
+    Column("target_infra", String(255)),
+    Column("target_url", String(255)),
+    Column("password", String(255)),
+    Column("username", String(255)),
 )
 
-
-# # TODO simplified "hack", move this into the BM class/table
-# target_instance = Table(
-#     "target_instance",
-#     metadata,
-#     Column("id", Integer, primary_key=True, autoincrement=True),
-#     Column("benchmark_id", ForeignKey("benchmark.id")),
-#     Column("target_infra", String(255)),
-#     Column("target_url", String(255)),
-#     Column("username", String(255)),
-#     Column("password", String(255)),
-# )
 
 project = Table(
     "project",
     metadata,
     Column("id", Integer, primary_key=True, autoincrement=True),
     Column("benchmark_id", ForeignKey("benchmark.id")),
-    # Column("target_instance_id", ForeignKey("target_instance.id")),
     Column("name", String(255)),
     Column("eigen_project_id", Integer(), nullable=True),
 )
@@ -75,11 +67,6 @@ def start_mappers():
             "document": relationship(document_mapper),
         },
     )
-    # mapper_registry.map_imperatively(
-    #     model.TargetInstance,
-    #     target_instance,
-    # )
-
     mapper_registry.map_imperatively(
         model.Benchmark,
         benchmark,

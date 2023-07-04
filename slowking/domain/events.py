@@ -28,7 +28,7 @@ class BenchmarkCreated(Event):
     benchmark_type: str
     target_infra: str
     target_url: str
-    target_release_version: str
+    target_eigen_platform_version: str
     username: str
     # Use .get_secret_value() method to see the secret's content
     password: SecretStr
@@ -36,7 +36,7 @@ class BenchmarkCreated(Event):
 
 class DocumentUpdated(Event):
     channel: Literal[EventChannelEnum.DOCUMENT_UPDATED]
-    document_id: int  # TODO eigen doc id or slowking doc id?
+    document_id: int  # NOTE this is the eigen document id
     document_name: str
     eigen_project_id: str
     # end_time: str | None  # TODO: change to datetime

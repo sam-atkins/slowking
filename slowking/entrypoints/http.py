@@ -12,7 +12,6 @@ from slowking import bootstrap, config
 from slowking.adapters.redis_event_publisher import publish
 from slowking.config import settings
 from slowking.domain import commands
-from slowking.domain.model import TimeStamp
 
 router = APIRouter(prefix=settings.API_BENCHMARK_NAMESPACE_V1_STR, tags=["benchmarks"])
 
@@ -54,7 +53,7 @@ class BenchmarkPayload(BaseModel):
     benchmark_type: str
     target_infra: str
     target_url: str
-    target_release_version: str
+    target_eigen_platform_version: str
     username: str
     password: str
 
@@ -68,7 +67,7 @@ async def start_benchmark(payload: BenchmarkPayload, background_tasks: Backgroun
         benchmark_type=payload.benchmark_type,
         target_infra=payload.target_infra,
         target_url=payload.target_url,
-        target_release_version=payload.target_release_version,
+        target_eigen_platform_version=payload.target_eigen_platform_version,
         username=payload.username,
         password=payload.password,  # type: ignore
     )
@@ -82,7 +81,7 @@ class UpdateDocumentPayload(BaseModel):
     eigen_project_id: str
     benchmark_host_name: str
     end_time: float | None  # TODO: type is a datetime timestamp
-    start_time: TimeStamp | None  # TODO: type is a datetime timestamp
+    start_time: float | None  # TODO: type is a datetime timestamp
 
 
 @router.post("/documents/", status_code=HTTPStatus.ACCEPTED)

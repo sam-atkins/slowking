@@ -25,11 +25,14 @@ def bootstrap(
     if notifications is None:
         notifications = LogNotifications()
 
-    injected_command_handlers: dict[Type[commands.Command], Callable] = {
-        commands.CreateBenchmark: lambda c: handlers.create_benchmark(c, uow, publish),
-        commands.UpdateDocument: lambda e: handlers.check_all_documents_uploaded(
-            e, uow, publish
-        ),
+    injected_command_handlers: dict[Type[commands.Command], list[Callable]] = {
+        commands.CreateBenchmark: [
+            lambda c: handlers.create_benchmark(c, uow, publish)
+        ],
+        commands.UpdateDocument: [
+            lambda e: handlers.update_document(e, uow, publish),
+            lambda e: handlers.check_all_documents_uploaded(e, uow, publish),
+        ],
     }
 
     injected_event_handlers: dict[Type[events.Event], list[Callable]] = {
@@ -41,7 +44,6 @@ def bootstrap(
             lambda e: handlers.upload_documents(e),
         ],
         events.DocumentUpdated: [
-            lambda e: handlers.update_document(e, uow, publish),
             lambda e: handlers.check_all_documents_uploaded(e, uow, publish),
         ],
     }

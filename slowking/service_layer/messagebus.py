@@ -18,7 +18,7 @@ class MessageBus:
 
     def __init__(
         self,
-        command_handlers: dict[Type[commands.Command], Callable],
+        command_handlers: dict[Type[commands.Command], list[Callable]],
         event_handlers: dict[Type[events.Event], list[Callable]],
     ):
         self.command_handlers = command_handlers
@@ -50,14 +50,13 @@ class MessageBus:
         Error handling - fail noisily
         Sent to - one recipient
         """
-        logger.info(f"handle_command: handling command {command}")
-        try:
-            handler = self.command_handlers[type(command)]
-            handler(command)
-            # self.queue.extend(self.uow.collect_new_events())
-        except Exception:
-            logger.exception(f"Exception handling command {command}")
-            raise
+        for handler in self.command_handlers[type(command)]:
+            try:
+                logger.info(f"handle_command: handling command {command}")
+                handler(command)
+            except Exception:
+                logger.exception(f"Exception handling command {command}")
+                raise
 
     def handle_event(self, event):
         """
