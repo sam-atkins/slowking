@@ -3,6 +3,7 @@ Mock Eigen API
 """
 import logging
 import random
+import time
 import uuid
 from datetime import datetime
 from http import HTTPStatus
@@ -16,6 +17,11 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 app = FastAPI()
+
+# this would be part of config, set on the benchmark host/target
+BENCHMARK_HOST_NAME = "eigenapi:8283"
+# SLOWKING_HOST_NAME = "slowking:8091"
+SLOWKING_HOST_NAME = "localhost:8091"
 
 
 @app.get("/health")
@@ -78,14 +84,58 @@ async def document_uploader(
 
 
 def fake_document_uploader(files: list[UploadFile], document_type_id: str):
-    pass
-    # TODO
-    # needed to send commands to the eventbus
-    # eigen_project_id & target_url (host) so document can be assigned to the correct bm
-    # eigen_document_id - this is available, provide a fake int that increments
-    # eigen_document_name - this is available: f.name
+    """
+    Instrumentation faker. Sends fake commands to the eventbus when
+    a document upload starts and again when it ends.
+    """
+    fake_doc_id = 10
+    for _file in files:
+        doc_start_time = datetime.utcnow().timestamp()
+        send_command_to_eventbus(
+            filename=_file.filename,
+            eigen_project_id=document_type_id,
+            eigen_document_id=fake_doc_id,
+            start_time=doc_start_time,
+        )
+        time.sleep(random.randint(1, 5))
+        doc_end_time = datetime.utcnow().timestamp()
+        send_command_to_eventbus(
+            filename=_file.filename,
+            eigen_project_id=document_type_id,
+            eigen_document_id=fake_doc_id,
+            end_time=doc_end_time,
+        )
+        fake_doc_id += 1
 
-    # loop over files
-    #   send *start* upload doc event
-    #   wait random number of seconds (between 1 and 5?)
-    #   send *end* upload doc event
+
+class UpdateDocument(BaseModel):
+    document_name: str
+    eigen_document_id: str
+    eigen_project_id: str
+    benchmark_host_name: str
+    end_time: float | None  # TODO: change to datetime
+    start_time: float | None  # TODO: change to datetime
+
+
+def send_command_to_eventbus(
+    filename: str,
+    eigen_project_id: str,
+    eigen_document_id: int,
+    start_time: float | None = None,
+    end_time: float | None = None,
+):
+    payload = UpdateDocument(
+        document_name=filename,
+        eigen_document_id=eigen_document_id,
+        eigen_project_id=eigen_project_id,
+        benchmark_host_name=BENCHMARK_HOST_NAME,
+        start_time=start_time,
+        end_time=end_time,
+    )
+
+    endpoint = "/api/v1/benchmarks/documents/"
+    url = f"http://{SLOWKING_HOST_NAME}{endpoint}"
+    print(f"Sending command to {url} - payload: {payload}")
+
+    # response = requests.post(url, json=payload.dict())
+    # print(f"Response from {url}: {response}")

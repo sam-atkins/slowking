@@ -3,10 +3,11 @@ Benchmarking domain entities
 """
 from __future__ import annotations
 
-from datetime import datetime
+# from datetime import datetime
 from typing import NewType
 
-TimeStamp = NewType("TimeStamp", datetime)
+TimeStamp = NewType("TimeStamp", float)
+# TimeStamp = NewType("TimeStamp", datetime.timestamp) # type: ignore
 
 
 class Benchmark:

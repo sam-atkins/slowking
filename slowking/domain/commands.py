@@ -36,5 +36,6 @@ class UpdateDocument(Command):
     document_name: str
     eigen_document_id: str
     eigen_project_id: str
+    benchmark_host_name: str  # the same as target_url, rename?
     end_time: str | None  # TODO: change to datetime
     start_time: str | None  # TODO: change to datetime
