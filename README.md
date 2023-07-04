@@ -156,3 +156,7 @@ https://docs.sqlalchemy.org/en/20/orm/session_basics.html#session-faq-threadsafe
 > The best way to ensure this use is by using the standard context manager pattern locally within the top level Python function that is inside the thread or task, which will ensure the lifespan of the Session or AsyncSession is maintained within a local scope.
 
 https://github.com/sqlalchemy/sqlalchemy/discussions/8554
+
+https://github.com/sqlalchemy/sqlalchemy/discussions/9114
+
+https://docs.sqlalchemy.org/en/20/orm/extensions/asyncio.html#synopsis-core
