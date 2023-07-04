@@ -9,6 +9,7 @@ from datetime import datetime
 from http import HTTPStatus
 from typing import Annotated
 
+import requests
 from fastapi import BackgroundTasks, FastAPI, Form, UploadFile
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -21,7 +22,7 @@ app = FastAPI()
 # this would be part of config, set on the benchmark host/target
 BENCHMARK_HOST_NAME = "eigenapi:8283"
 # SLOWKING_HOST_NAME = "slowking:8091"
-SLOWKING_HOST_NAME = "localhost:8091"
+SLOWKING_HOST_NAME = "slowking-api-eventbus:8091"
 
 
 @app.get("/health")
@@ -137,5 +138,5 @@ def send_command_to_eventbus(
     url = f"http://{SLOWKING_HOST_NAME}{endpoint}"
     print(f"Sending command to {url} - payload: {payload}")
 
-    # response = requests.post(url, json=payload.dict())
-    # print(f"Response from {url}: {response}")
+    response = requests.post(url, json=payload.dict())
+    print(f"Response from {url}: {response}")

@@ -93,7 +93,7 @@ async def update_document(
     Update document in a benchmark by issuing an `UpdateDocument` command.
     The command is published to the eventbus to be handled.
     """
-    logger.info(f"API /benchmarks/start starting benchmark: {payload.name}")
+    logger.info(f"API /benchmarks/document/ updating {payload.document_name}")
     cmd = commands.UpdateDocument(
         channel=commands.CommandChannelEnum.UPDATE_DOCUMENT,
         document_name=payload.document_name,
