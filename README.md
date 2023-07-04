@@ -145,9 +145,14 @@ An example Payload (WIP) would be:
 sqlalchemy.exc.InvalidRequestError: Object '<Benchmark at 0xffff8d290fd0>' is already attached to session '5' (this is '6')
 
 sqlalchemy.exc.InvalidRequestError: This session is provisioning a new connection; concurrent operations are not permitted (Background on this error at: https://sqlalche.me/e/20/isce)
+
+sqlalchemy.exc.IllegalStateChangeError: Method 'rollback()' can't be called here; method 'commit()' is already in progress and this would cause an unexpected state change to <SessionTransactionState.CLOSED: 5>
+(Background on this error at: https://sqlalche.me/e/20/isce)
 ```
 
 https://docs.sqlalchemy.org/en/20/orm/session_basics.html#session-faq-threadsafe
 
 > The concurrency model for SQLAlchemy’s Session and AsyncSession is therefore Session per thread, AsyncSession per task.
 > The best way to ensure this use is by using the standard context manager pattern locally within the top level Python function that is inside the thread or task, which will ensure the lifespan of the Session or AsyncSession is maintained within a local scope.
+
+https://github.com/sqlalchemy/sqlalchemy/discussions/8554
