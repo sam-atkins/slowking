@@ -116,7 +116,7 @@ def upload_documents(event: events.ProjectCreated):
     )
     response = client.upload_files(project_id=event.eigen_project_id, files=f_list)
     logger.info(f"=== upload_documents :: response === : {response}")
-    # end
+    logger.info("=== Upload Documents completed ===")
 
 
 def update_document(
@@ -149,7 +149,7 @@ def update_document(
     #     )
     #     logger.info(f"=== bm === : {bm}")
 
-    #     # NOTE, `benchmark.project.documents` will raise if there are no documents
+    #     # NOTE, `benchmark.project.documents` raises if there are no documents? Fix it
     #     try:
     #         bm.project.documents.append(doc)
     #     except Exception as e:

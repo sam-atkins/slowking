@@ -1,16 +1,19 @@
 """
 Mock Eigen API
 """
+import logging
 import random
 import uuid
 from datetime import datetime
-from logging import getLogger
+from http import HTTPStatus
+from typing import Annotated
 
-from fastapi import FastAPI, UploadFile
+from fastapi import BackgroundTasks, FastAPI, Form, UploadFile
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-logger = getLogger(__name__)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 app = FastAPI()
 
@@ -52,17 +55,37 @@ def create_project(item: ProjectItem):
 
 
 @app.post("/api/v1/document_uploader/")
-def document_uploader(files: list[UploadFile]):
-    # TODO add background task to "process" documents
+async def document_uploader(
+    document_type_id: Annotated[str, Form()],
+    files: list[UploadFile],
+    background_tasks: BackgroundTasks,
+):
     file_names = [file.filename for file in files]
     file_qty = len(files)
+
+    # TODO not logging to stdout, why not?
     logger.info(f"Received {file_qty} files")
     logger.info(f"File names received: {file_names}")
 
-    # background task
-    # loop over files
-    #   send start upload doc event
-    #   wait random number of seconds (between 1 and 5?)
-    #   send end upload doc event
+    # HACK to get around logging not working
+    print(f"{document_type_id=}")
+    print(f"Received {file_qty} files")
+    print(f"File names received: {file_names}")
 
-    return {"message": f"{file_qty} document(s) received"}
+    background_tasks.add_task(fake_document_uploader, files, document_type_id)
+
+    return {"message": f"{file_qty} document(s) received"}, HTTPStatus.ACCEPTED
+
+
+def fake_document_uploader(files: list[UploadFile], document_type_id: str):
+    pass
+    # TODO
+    # needed to send commands to the eventbus
+    # eigen_project_id & target_url (host) so document can be assigned to the correct bm
+    # eigen_document_id - this is available, provide a fake int that increments
+    # eigen_document_name - this is available: f.name
+
+    # loop over files
+    #   send *start* upload doc event
+    #   wait random number of seconds (between 1 and 5?)
+    #   send *end* upload doc event

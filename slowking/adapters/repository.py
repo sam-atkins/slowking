@@ -61,6 +61,9 @@ class SqlAlchemyRepository(AbstractRepository):
     def _get_by_name(self, name) -> model.Benchmark:
         return self.session.query(model.Benchmark).filter_by(name=name).first()
 
+    # TODO document may not actually exist in the db so
+    # need a query for
+    # benchmark.target_url (host) and benchmark.project.eigen_project_id
     def _get_by_document_name_and_project_id(
         self, name: str, project_id: str
     ) -> model.Benchmark:
