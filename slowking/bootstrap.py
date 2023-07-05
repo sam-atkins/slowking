@@ -6,14 +6,15 @@ from slowking.adapters.db_engine import init_db
 from slowking.adapters.notifications import AbstractNotifications, LogNotifications
 from slowking.config import settings
 from slowking.domain import commands, events
-from slowking.service_layer import handlers, messagebus, unit_of_work
+from slowking.service_layer import handlers, messagebus
 
 logger = logging.getLogger(__name__)
 
 
+# Note, unit_of_work.SqlAlchemyUnitOfWork() is not injected into the handlers
+# to avoid concurrency issues with the db session
 def bootstrap(
     start_orm: bool = True,
-    uow: unit_of_work.AbstractUnitOfWork = unit_of_work.SqlAlchemyUnitOfWork(),
     notifications: AbstractNotifications = None,  # type: ignore
     publish: Callable[[events.Event], None] = redis_event_publisher.publish,
 ) -> messagebus.MessageBus:
@@ -26,25 +27,23 @@ def bootstrap(
         notifications = LogNotifications()
 
     injected_command_handlers: dict[Type[commands.Command], list[Callable]] = {
-        commands.CreateBenchmark: [
-            lambda c: handlers.create_benchmark(c, uow, publish)
-        ],
+        commands.CreateBenchmark: [lambda c: handlers.create_benchmark(c, publish)],
         commands.UpdateDocument: [
-            lambda e: handlers.update_document(e, uow, publish),
-            lambda e: handlers.check_all_documents_uploaded(e, uow, publish),
+            lambda e: handlers.update_document(e, publish),
+            lambda e: handlers.check_all_documents_uploaded(e, publish),
         ],
     }
 
     injected_event_handlers: dict[Type[events.Event], list[Callable]] = {
         events.BenchmarkCreated: [
             lambda e: handlers.get_artifacts(e),
-            lambda e: handlers.create_project(e, uow, publish),
+            lambda e: handlers.create_project(e, publish),
         ],
         events.ProjectCreated: [
             lambda e: handlers.upload_documents(e),
         ],
         events.DocumentUpdated: [
-            lambda e: handlers.check_all_documents_uploaded(e, uow, publish),
+            lambda e: handlers.check_all_documents_uploaded(e, publish),
         ],
     }
 

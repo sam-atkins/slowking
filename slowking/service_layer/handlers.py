@@ -12,7 +12,6 @@ logger = logging.getLogger(__name__)
 
 def create_benchmark(
     cmd: commands.CreateBenchmark,
-    uow: unit_of_work.AbstractUnitOfWork,
     publish: Callable[[events.Event], None],
 ):
     logger.info("=== Called create_benchmark handler ===")
@@ -21,6 +20,7 @@ def create_benchmark(
     # NOTE placeholder for benchmark.id to avoid DetachedInstanceError Session issues
     benchmark_id: int
 
+    uow = unit_of_work.SqlAlchemyUnitOfWork()
     with uow:
         documents = []
         files = pathlib.Path("/home/app/artifacts").glob("*.txt")
@@ -48,7 +48,6 @@ def create_benchmark(
         logger.info(f"=== benchmark === : {benchmark}")
         benchmark_id = benchmark.id
         logger.info(f"=== create_benchmark :: benchmark.id === : {benchmark.id}")
-        uow.commit()
 
     publish(
         events.BenchmarkCreated(
@@ -72,7 +71,6 @@ def get_artifacts(event: events.BenchmarkCreated):
 
 def create_project(
     event: events.BenchmarkCreated,
-    uow: unit_of_work.AbstractUnitOfWork,
     publish: Callable[[events.Event], None],
 ):
     logger.info("=== Called create_project ===")
@@ -87,12 +85,12 @@ def create_project(
     logger.info(f"=== create_project :: project response === : {project}")
     project_id = project.document_type_id
 
+    uow = unit_of_work.SqlAlchemyUnitOfWork()
     with uow:
         benchmark = uow.benchmarks.get_by_id(event.benchmark_id)
         benchmark.project.eigen_project_id = project_id
         logger.info(f"===  benchmark.project === : {benchmark.project}")
         uow.benchmarks.add(benchmark)
-        uow.commit()
 
     logger.info("=== Create Project completed ===")
     publish(
@@ -127,11 +125,12 @@ def upload_documents(event: events.ProjectCreated):
 
 def update_document(
     cmd: commands.UpdateDocument,
-    uow: unit_of_work.AbstractUnitOfWork,
     publish: Callable[[events.Event], None],
 ):
     logger.info("=== Called update_document ===")
     logger.info(f"update_document cmd: {cmd}")
+
+    uow = unit_of_work.SqlAlchemyUnitOfWork()
     with uow:
         bm = uow.benchmarks.get_by_host_and_project_id(
             host=cmd.benchmark_host_name, project_id=cmd.eigen_project_id
@@ -151,8 +150,6 @@ def update_document(
                 break
 
         uow.benchmarks.add(bm)
-        logger.info(f"=== commit bm with uow  === : {bm}")
-        uow.commit()
 
     # publish(
     #     events.DocumentUpdated(
@@ -168,7 +165,6 @@ def update_document(
 
 def check_all_documents_uploaded(
     event: events.DocumentUpdated,
-    uow: unit_of_work.AbstractUnitOfWork,
     publish: Callable[[events.Event], None],
 ):
     logger.info("=== Called check_all_documents_uploaded ===")
