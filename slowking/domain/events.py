@@ -8,6 +8,7 @@ from pydantic import BaseModel, SecretStr
 
 
 class EventChannelEnum(StrEnum):
+    ALL_DOCUMENTS_UPLOADED = "all_documents_uploaded"
     BENCHMARK_CREATED = "benchmark_created"
     DOCUMENT_UPDATED = "document_updated"
     PROJECT_CREATED = "project_created"
@@ -36,11 +37,10 @@ class BenchmarkCreated(Event):
 
 class DocumentUpdated(Event):
     channel: Literal[EventChannelEnum.DOCUMENT_UPDATED]
+    benchmark_id: int
     document_id: int  # NOTE this is the eigen document id
     document_name: str
-    eigen_project_id: str
-    # end_time: str | None  # TODO: change to datetime
-    # start_time: str | None  # TODO: change to datetime
+    eigen_project_id: int
 
 
 class ProjectCreated(Event):
@@ -51,7 +51,13 @@ class ProjectCreated(Event):
     username: str
 
 
+class AllDocumentsUploaded(Event):
+    channel: Literal[EventChannelEnum.ALL_DOCUMENTS_UPLOADED]
+    benchmark_id: int
+
+
 EVENT_MAPPER = {
+    EventChannelEnum.ALL_DOCUMENTS_UPLOADED.value: AllDocumentsUploaded,
     EventChannelEnum.BENCHMARK_CREATED.value: BenchmarkCreated,
     EventChannelEnum.PROJECT_CREATED.value: ProjectCreated,
     EventChannelEnum.DOCUMENT_UPDATED.value: DocumentUpdated,

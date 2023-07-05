@@ -129,6 +129,7 @@ def update_document(
 ):
     logger.info("=== Called update_document ===")
     logger.info(f"update_document cmd: {cmd}")
+    benchmark_id: int
 
     uow = unit_of_work.SqlAlchemyUnitOfWork()
     with uow:
@@ -136,6 +137,7 @@ def update_document(
             host=cmd.benchmark_host_name, project_id=cmd.eigen_project_id
         )
         logger.info(f"=== bm === : {bm}")
+        benchmark_id = bm.id
 
         documents = bm.project.document
         logger.info(f"=== documents === : {documents}")
@@ -151,24 +153,42 @@ def update_document(
 
         uow.benchmarks.add(bm)
 
-    # publish(
-    #     events.DocumentUpdated(
-    #         channel=events.EventChannelEnum.DOCUMENT_UPDATED,
-    #         document_id=cmd.eigen_document_id,  # fix name and int or str
-    #         document_name=cmd.document_name,
-    #         eigen_project_id=cmd.eigen_project_id,
-    #         # end_time=cmd.end_time,
-    #         # start_time=cmd.start_time,
-    #     )
-    # )
+    publish(
+        events.DocumentUpdated(
+            channel=events.EventChannelEnum.DOCUMENT_UPDATED,
+            benchmark_id=benchmark_id,
+            document_id=int(cmd.eigen_document_id),  # fix name and int or str
+            document_name=cmd.document_name,
+            eigen_project_id=int(cmd.eigen_project_id),
+        )
+    )
 
 
+# This ends up being called successfully for each fully uploaded document
+# how to only trigger create_report once?
 def check_all_documents_uploaded(
     event: events.DocumentUpdated,
     publish: Callable[[events.Event], None],
 ):
     logger.info("=== Called check_all_documents_uploaded ===")
     logger.info(f"check_all_documents_uploaded event: {event}")
-    # TODO handler event DocumentUpdated
-    # check if all docs are updated, if so, send event for next stage in benchmark
-    # create report?
+
+    uow = unit_of_work.SqlAlchemyUnitOfWork()
+    with uow:
+        bm = uow.benchmarks.get_by_id(event.benchmark_id)
+        logger.info(f"=== check_all_documents_uploaded bm === : {bm}")
+        documents = bm.project.document
+
+        docs_with_upload_time = [doc.upload_time for doc in documents]
+        if len(docs_with_upload_time) == len(documents):
+            logger.info(f"=== docs_with_upload_time === : {docs_with_upload_time}")
+            publish(
+                events.AllDocumentsUploaded(
+                    channel=events.EventChannelEnum.ALL_DOCUMENTS_UPLOADED,
+                    benchmark_id=event.benchmark_id,
+                )
+            )
+
+
+def create_report(event: events.AllDocumentsUploaded):
+    logger.info(f"=== Called create_report with {event} ===")

@@ -84,7 +84,11 @@ class Document:
 
     @property
     def upload_time(self):
-        if not self.upload_time_start and not self.upload_time_end:
+        """Calculate the upload time of the document"""
+        # FIXME
+        # TypeError: unsupported operand type(s) for -:
+        # 'NoneType' and 'datetime.datetime'
+        if self.upload_time_start is None and self.upload_time_end is None:
             return None
         upload_time = self.upload_time_end - self.upload_time_start
         return upload_time.total_seconds()

@@ -30,7 +30,6 @@ def bootstrap(
         commands.CreateBenchmark: [lambda c: handlers.create_benchmark(c, publish)],
         commands.UpdateDocument: [
             lambda e: handlers.update_document(e, publish),
-            lambda e: handlers.check_all_documents_uploaded(e, publish),
         ],
     }
 
@@ -44,6 +43,9 @@ def bootstrap(
         ],
         events.DocumentUpdated: [
             lambda e: handlers.check_all_documents_uploaded(e, publish),
+        ],
+        events.AllDocumentsUploaded: [
+            lambda e: handlers.create_report(e),
         ],
     }
 
