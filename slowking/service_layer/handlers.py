@@ -179,7 +179,15 @@ def check_all_documents_uploaded(
         logger.info(f"=== check_all_documents_uploaded bm === : {bm}")
         documents = bm.project.document
 
-        docs_with_upload_time = [doc.upload_time for doc in documents]
+        docs_with_upload_time = [
+            doc.upload_time for doc in documents if doc.upload_time
+        ]
+        logger.info(f"=== docs_with_upload_time === : {docs_with_upload_time}")
+        logger.info(
+            f"=== len(docs_with_upload_time) === : {len(docs_with_upload_time)}"
+        )
+        logger.info(f"=== len(documents) === : {len(documents)}")
+
         if len(docs_with_upload_time) == len(documents):
             logger.info(f"=== docs_with_upload_time === : {docs_with_upload_time}")
             publish(
