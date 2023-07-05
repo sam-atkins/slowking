@@ -6,7 +6,7 @@ import redis
 
 from slowking import bootstrap, config
 from slowking.config import settings
-from slowking.domain import events
+from slowking.domain.events import EVENT_MAPPER
 from slowking.service_layer import messagebus
 
 logger = logging.getLogger(__name__)
@@ -40,23 +40,13 @@ def assign_channel_event_to_handler(
     payload = json.loads(message["data"])
     topic = str(channel, "utf-8")
 
-    # Andrew feedback:
-    # TODO consider a dict of topic: [functions] instead of a switch statement
-    # functools.partial() may be useful here
+    event = EVENT_MAPPER.get(topic, None)
+    if event is None:
+        logger.warning(f"Channel {channel} not found for message: {message}")
+        return
 
-    match topic:
-        case events.EventChannelEnum.BENCHMARK_CREATED.value:
-            event = events.BenchmarkCreated(**payload)
-            bus.handle(event)
-        case events.EventChannelEnum.PROJECT_CREATED.value:
-            event = events.ProjectCreated(**payload)
-            bus.handle(event)
-        case events.EventChannelEnum.DOCUMENT_UPDATED.value:
-            event = events.DocumentUpdated(**payload)
-            bus.handle(event)
-        case _:
-            logger.warning(f"Channel {channel} not found for message: {message}")
-            return
+    e = event(**payload)
+    bus.handle(e)
 
 
 if __name__ == "__main__":

@@ -49,3 +49,10 @@ class ProjectCreated(Event):
     password: SecretStr
     target_url: str
     username: str
+
+
+EVENT_MAPPER = {
+    EventChannelEnum.BENCHMARK_CREATED.value: BenchmarkCreated,
+    EventChannelEnum.PROJECT_CREATED.value: ProjectCreated,
+    EventChannelEnum.DOCUMENT_UPDATED.value: DocumentUpdated,
+}  # type: dict[str, Type[Event]]
