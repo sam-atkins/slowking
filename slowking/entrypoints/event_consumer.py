@@ -26,7 +26,6 @@ def main():
         assign_channel_event_to_handler(message, bus)
 
 
-# NOTE: Ask Andrew if there is clever Pythonic way of doing this?
 def assign_channel_event_to_handler(
     message: dict[Any, Any], bus: messagebus.MessageBus
 ):
@@ -40,57 +39,24 @@ def assign_channel_event_to_handler(
 
     payload = json.loads(message["data"])
     topic = str(channel, "utf-8")
+
+    # Andrew feedback:
+    # TODO consider a dict of topic: [functions] instead of a switch statement
+    # functools.partial() may be useful here
+
     match topic:
         case events.EventChannelEnum.BENCHMARK_CREATED.value:
-            publish_benchmark_created_event(payload, bus)
+            event = events.BenchmarkCreated(**payload)
+            bus.handle(event)
         case events.EventChannelEnum.PROJECT_CREATED.value:
-            publish_project_created_event(payload, bus)
+            event = events.ProjectCreated(**payload)
+            bus.handle(event)
         case events.EventChannelEnum.DOCUMENT_UPDATED.value:
-            publish_document_updated_event(payload, bus)
+            event = events.DocumentUpdated(**payload)
+            bus.handle(event)
         case _:
             logger.warning(f"Channel {channel} not found for message: {message}")
             return
-
-
-def publish_benchmark_created_event(message_payload, bus):
-    logger.info(f"publish_benchmark_created_event with payload: {message_payload}")
-    event = events.BenchmarkCreated(
-        channel=events.EventChannelEnum.BENCHMARK_CREATED,
-        name=message_payload["name"],
-        benchmark_id=message_payload["benchmark_id"],
-        benchmark_type=message_payload["benchmark_type"],
-        target_infra=message_payload["target_infra"],
-        target_url=message_payload["target_url"],
-        target_eigen_platform_version=message_payload["target_eigen_platform_version"],
-        username=message_payload["username"],
-        password=message_payload["password"],
-    )
-    bus.handle(event)
-
-
-def publish_document_updated_event(message_payload, bus):
-    logger.info(f"publish_document_updated_event with payload: {message_payload}")
-    event = events.DocumentUpdated(
-        channel=events.EventChannelEnum.DOCUMENT_UPDATED,
-        document_id=message_payload["document_id"],
-        document_name=message_payload["document_name"],
-        eigen_project_id=message_payload["eigen_project_id"],
-        # end_time=message_payload["end_time"],
-        # start_time=message_payload["start_time"],
-    )
-    bus.handle(event)
-
-
-def publish_project_created_event(message_payload, bus):
-    logger.info(f"publish_project_created_event with payload: {message_payload}")
-    event = events.ProjectCreated(
-        channel=events.EventChannelEnum.PROJECT_CREATED,
-        target_url=message_payload["target_url"],
-        eigen_project_id=message_payload["eigen_project_id"],
-        username=message_payload["username"],
-        password=message_payload["password"],
-    )
-    bus.handle(event)
 
 
 if __name__ == "__main__":
