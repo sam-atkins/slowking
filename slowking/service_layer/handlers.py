@@ -164,8 +164,6 @@ def update_document(
     )
 
 
-# This ends up being called successfully for each fully uploaded document
-# how to only trigger create_report once?
 def check_all_documents_uploaded(
     event: events.DocumentUpdated,
     publish: Callable[[events.Event], None],
@@ -200,3 +198,9 @@ def check_all_documents_uploaded(
 
 def create_report(event: events.AllDocumentsUploaded):
     logger.info(f"=== Called create_report with {event} ===")
+    uow = unit_of_work.SqlAlchemyUnitOfWork()
+    with uow:
+        bm = uow.benchmarks.get_by_id(event.benchmark_id)
+        logger.info(f"=== create_report bm === : {bm}")
+        # TODO hand over bm to report generator/service
+        # TODO notify user of report generation e.g. email with report
