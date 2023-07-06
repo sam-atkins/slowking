@@ -1,6 +1,6 @@
 import logging
 import pathlib
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Callable
 
 from slowking.adapters.http import EigenClient
@@ -17,7 +17,7 @@ def create_benchmark(
 ):
     logger.info("=== Called create_benchmark handler ===")
 
-    name = f"{datetime.now().strftime('%Y-%m-%d, %H:%M:%S')} - {cmd.name}"
+    name = f"{datetime.now(timezone.utc).strftime('%Y-%m-%d, %H:%M:%S')} - {cmd.name}"
     # NOTE placeholder for benchmark.id to avoid DetachedInstanceError Session issues
     benchmark_id: int
 

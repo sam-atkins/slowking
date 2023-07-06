@@ -5,7 +5,7 @@ import logging
 import random
 import time
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from http import HTTPStatus
 from typing import Annotated
 
@@ -54,7 +54,7 @@ def create_project(item: ProjectItem):
         "document_type_id": project_id,
         "name": item.name,
         "description": item.description,
-        "created_at": datetime.utcnow().timestamp(),
+        "created_at": datetime.now(timezone.utc).timestamp(),
         "language": "english",
         "use_numerical_confidence_predictions": True,
     }
@@ -91,7 +91,7 @@ def fake_document_uploader(files: list[UploadFile], document_type_id: str):
     """
     fake_doc_id = 10
     for _file in files:
-        doc_start_time = datetime.utcnow().timestamp()
+        doc_start_time = datetime.now(timezone.utc).timestamp()
         send_command_to_eventbus(
             filename=_file.filename,
             eigen_project_id=document_type_id,
@@ -99,7 +99,7 @@ def fake_document_uploader(files: list[UploadFile], document_type_id: str):
             start_time=doc_start_time,
         )
         time.sleep(random.randint(1, 5))
-        doc_end_time = datetime.utcnow().timestamp()
+        doc_end_time = datetime.now(timezone.utc).timestamp()
         send_command_to_eventbus(
             filename=_file.filename,
             eigen_project_id=document_type_id,

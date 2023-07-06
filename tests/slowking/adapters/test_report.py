@@ -1,4 +1,4 @@
-# import datetime
+# from datetime import datetime, timedelta, timezone
 
 # from slowking.adapters.report import LatencyReport
 # from slowking.domain import model
@@ -11,14 +11,14 @@
 #         name="test doc",
 #         file_path="test path",
 #     )
-#     doc.upload_time_start = datetime.datetime.now() - datetime.timedelta(seconds=5)
-#     doc.upload_time_end = datetime.datetime.now()
+#     doc.upload_time_start = datetime.now(timezone.utc) - timedelta(seconds=5)
+#     doc.upload_time_end = datetime.now(timezone.utc)
 #     doc2 = model.Document(
 #         name="test doc2",
 #         file_path="test path",
 #     )
-#     doc2.upload_time_start = datetime.datetime.now() - datetime.timedelta(seconds=2)
-#     doc2.upload_time_end = datetime.datetime.now()
+#     doc2.upload_time_start = datetime.now(timezone.utc) - timedelta(seconds=2)
+#     doc2.upload_time_end = datetime.now(timezone.utc)
 
 #     benchmark = model.Benchmark(
 #         name="test bm",
