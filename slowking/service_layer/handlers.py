@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Callable
 
 from slowking.adapters.http import EigenClient
+from slowking.adapters.report import LatencyReport
 from slowking.domain import commands, events, model
 from slowking.service_layer import unit_of_work
 
@@ -202,5 +203,5 @@ def create_report(event: events.AllDocumentsUploaded):
     with uow:
         bm = uow.benchmarks.get_by_id(event.benchmark_id)
         logger.info(f"=== create_report bm === : {bm}")
-        # TODO hand over bm to report generator/service
+        LatencyReport().create(bm)
         # TODO notify user of report generation e.g. email with report

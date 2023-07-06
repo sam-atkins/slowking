@@ -5,15 +5,10 @@ import abc
 import csv
 import logging.config
 
+from slowking.config import settings
 from slowking.domain import model
 
 logger = logging.getLogger(__name__)
-
-
-# TODO move to config, switch to docker path
-# OUTPUT_DIR = "/home/app/reports"
-OUTPUT_DIR = "./reports/"
-OUTPUT_FILENAME = "report.csv"
 
 
 class AbstractReporter:
@@ -27,8 +22,8 @@ class LatencyReport(AbstractReporter):
     Latency report generator. Creates a CSV file with document upload times.
     """
 
-    output_dir: str = OUTPUT_DIR
-    output_filename: str = OUTPUT_FILENAME
+    output_dir: str = settings.OUTPUT_DIR
+    output_filename: str = settings.OUTPUT_FILENAME
 
     @classmethod
     def create(cls, benchmark: model.Benchmark):
