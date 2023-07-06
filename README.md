@@ -12,6 +12,8 @@ This is a proof of concept benchmarking app/tool with an event-driven architectu
     - [Database Tables](#database-tables)
     - [Unit of Work](#unit-of-work)
   - [Open Issues](#open-issues)
+  - [Closed Issues](#closed-issues)
+    - [Concurrent DB connection issues](#concurrent-db-connection-issues)
 
 ## Design Principles
 
@@ -140,6 +142,14 @@ An example Payload (WIP) would be:
   - e.g. `self.benchmarks = repository.SqlAlchemyRepository(self.session)`
 
 ## Open Issues
+
+None
+
+## Closed Issues
+
+### Concurrent DB connection issues
+
+Resolved by not injecting the UoW into bootstrap. Instead the handler instantiates its own UoW i.e. it is a session just for that handler.
 
 ```
 sqlalchemy.exc.InvalidRequestError: Object '<Benchmark at 0xffff8d290fd0>' is already attached to session '5' (this is '6')
