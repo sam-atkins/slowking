@@ -59,6 +59,5 @@ class LatencyReport(AbstractReporter):
                 fieldnames=fieldnames,
             )
             csv_writer.writeheader()
-            for field in fields:
-                csv_writer.writerow(field)
+            csv_writer.writerows(fields)
         logger.info("=== LatencyReport created ===")
