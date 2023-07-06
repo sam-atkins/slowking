@@ -70,7 +70,7 @@ class Document:
         self,
         name: str,
         file_path: str,
-        eigen_document_id: str = "",
+        eigen_document_id: int | None = None,
         eigen_project_id: str = "",
     ):
         self.name = name

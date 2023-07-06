@@ -5,13 +5,14 @@ source /opt/setup/.venv/bin/activate
 
 usage() {
     echo "Usage: $0 [api|event-consumer]"
-    echo "  - api: start the fastapi server and eventbus"
+    echo "  - api: run db migrations, start the fastapi server and eventbus"
     echo "  - event-consumer: start redis event consumer (pub/sub)"
 }
 
 if [[ "$1" == "event-consumer" ]]; then
     watchmedo auto-restart --directory=/home/app/slowking --pattern="*.py" -- python -m slowking.entrypoints.event_consumer
 elif [[ "$1" == "api" ]]; then
+    alembic upgrade head
     uvicorn slowking.router:app --host 0.0.0.0 --reload --port 8091
 else
     echo "Unknown or missing sub-command: '$1'"
