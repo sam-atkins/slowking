@@ -33,20 +33,19 @@ def assign_channel_event_to_handler(
     Assigns a channel message event to a function which will call the message bus
     """
     channel = message["channel"]
+    channel = str(channel, "utf-8")
     logger.info(
         f"assign_channel_event_to_handler channel {channel} with message: {message}"
     )
 
-    payload = json.loads(message["data"])
-    topic = str(channel, "utf-8")
-
-    event = EVENT_MAPPER.get(topic, None)
-    if event is None:
+    mapped_event = EVENT_MAPPER.get(channel)
+    if mapped_event is None:
         logger.warning(f"Channel {channel} not found for message: {message}")
         return
 
-    e = event(**payload)
-    bus.handle(e)
+    payload = json.loads(message["data"])
+    event = mapped_event(**payload)
+    bus.handle(event)
 
 
 if __name__ == "__main__":
