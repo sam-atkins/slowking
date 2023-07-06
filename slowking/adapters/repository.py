@@ -22,10 +22,8 @@ class AbstractRepository(abc.ABC):
         benchmark = self._get_by_name(name)
         return benchmark
 
-    def get_by_document_name_and_project_id(
-        self, name: str, project_id: str
-    ) -> model.Benchmark:
-        benchmark = self._get_by_document_name_and_project_id(name, project_id)
+    def get_by_host_and_project_id(self, host: str, project_id: str) -> model.Benchmark:
+        benchmark = self._get_by_host_and_project_id(host, project_id)
         return benchmark
 
     @abc.abstractmethod
@@ -40,9 +38,9 @@ class AbstractRepository(abc.ABC):
     def _get_by_name(self, name) -> model.Benchmark:
         raise NotImplementedError
 
-    @abc.abstractmethod
-    def _get_by_document_name_and_project_id(
-        self, name: str, project_id: str
+    @abc.abstractclassmethod
+    def _get_by_host_and_project_id(
+        self, host: str, project_id: str
     ) -> model.Benchmark:
         raise NotImplementedError
 
@@ -61,15 +59,15 @@ class SqlAlchemyRepository(AbstractRepository):
     def _get_by_name(self, name) -> model.Benchmark:
         return self.session.query(model.Benchmark).filter_by(name=name).first()
 
-    def _get_by_document_name_and_project_id(
-        self, name: str, project_id: str
+    def _get_by_host_and_project_id(
+        self, host: str, project_id: str
     ) -> model.Benchmark:
         return (
             self.session.query(model.Benchmark)
-            .join(model.Document)
+            .join(model.Project)
             .filter(
-                orm.benchmarks.c.project_eigen_project_id == project_id,
-                orm.documents.c.name == name,
+                orm.benchmark.c.target_url == host,
+                orm.project.c.eigen_project_id == project_id,
             )
             .first()
         )

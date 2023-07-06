@@ -38,6 +38,7 @@ services:
       - slowking-redis
     volumes:
       - ./slowking:/home/app/slowking
+      - ./reports:/home/app/reports
     # networks:
     #   - network_eigen_dev
 

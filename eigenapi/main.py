@@ -1,18 +1,28 @@
 """
 Mock Eigen API
 """
+import logging
 import random
+import time
 import uuid
 from datetime import datetime
-from logging import getLogger
+from http import HTTPStatus
+from typing import Annotated
 
-from fastapi import FastAPI
+import requests
+from fastapi import BackgroundTasks, FastAPI, Form, UploadFile
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-logger = getLogger(__name__)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 app = FastAPI()
+
+# this would be part of config, set on the benchmark host/target
+BENCHMARK_HOST_NAME = "eigenapi:8283"
+# SLOWKING_HOST_NAME = "slowking:8091"
+SLOWKING_HOST_NAME = "slowking-api-eventbus:8091"
 
 
 @app.get("/health")
@@ -51,17 +61,82 @@ def create_project(item: ProjectItem):
     return JSONResponse(content=data)
 
 
-# @app.post("api/v1/document_uploader/")
-# def document_uploader(files: list[UploadFile]):
-#     # TODO add background task to "process" documents
-#     file_names = [file.filename for file in files]
-#     logger.info(f"Received {len(files)} files")
-#     logger.info(f"File names received: {file_names}")
+@app.post("/api/v1/document_uploader/")
+async def document_uploader(
+    document_type_id: Annotated[str, Form()],
+    files: list[UploadFile],
+    background_tasks: BackgroundTasks,
+):
+    file_names = [file.filename for file in files]
+    file_qty = len(files)
 
-#     # background task
-#     # loop over files
-#     #   send start upload doc event
-#     #   wait random number of seconds (between 1 and 5?)
-#     #   send end upload doc event
+    # TODO not logging to stdout, why not?
+    logger.info(f"Received {file_qty} files")
+    logger.info(f"File names received: {file_names}")
 
-#     return Response(content="document(s) received")
+    # HACK to get around logging not working
+    print(f"{document_type_id=}")
+    print(f"Received {file_qty} files")
+    print(f"File names received: {file_names}")
+
+    background_tasks.add_task(fake_document_uploader, files, document_type_id)
+
+    return {"message": f"{file_qty} document(s) received"}, HTTPStatus.ACCEPTED
+
+
+def fake_document_uploader(files: list[UploadFile], document_type_id: str):
+    """
+    Instrumentation faker. Sends fake commands to the eventbus when
+    a document upload starts and again when it ends.
+    """
+    fake_doc_id = 10
+    for _file in files:
+        doc_start_time = datetime.utcnow().timestamp()
+        send_command_to_eventbus(
+            filename=_file.filename,
+            eigen_project_id=document_type_id,
+            eigen_document_id=fake_doc_id,
+            start_time=doc_start_time,
+        )
+        time.sleep(random.randint(1, 5))
+        doc_end_time = datetime.utcnow().timestamp()
+        send_command_to_eventbus(
+            filename=_file.filename,
+            eigen_project_id=document_type_id,
+            eigen_document_id=fake_doc_id,
+            end_time=doc_end_time,
+        )
+        fake_doc_id += 1
+
+
+class UpdateDocument(BaseModel):
+    document_name: str
+    eigen_document_id: str
+    eigen_project_id: str
+    benchmark_host_name: str
+    end_time: float | None  # TODO: change to datetime
+    start_time: float | None  # TODO: change to datetime
+
+
+def send_command_to_eventbus(
+    filename: str,
+    eigen_project_id: str,
+    eigen_document_id: int,
+    start_time: float | None = None,
+    end_time: float | None = None,
+):
+    payload = UpdateDocument(
+        document_name=filename,
+        eigen_document_id=eigen_document_id,
+        eigen_project_id=eigen_project_id,
+        benchmark_host_name=BENCHMARK_HOST_NAME,
+        start_time=start_time,
+        end_time=end_time,
+    )
+
+    endpoint = "/api/v1/benchmarks/documents/"
+    url = f"http://{SLOWKING_HOST_NAME}{endpoint}"
+    print(f"Sending command to {url} - payload: {payload}")
+
+    response = requests.post(url, json=payload.dict())
+    print(f"Response from {url}: {response}")

@@ -6,7 +6,7 @@ import redis
 
 from slowking import bootstrap, config
 from slowking.config import settings
-from slowking.domain import events
+from slowking.domain.events import EVENT_MAPPER
 from slowking.service_layer import messagebus
 
 logger = logging.getLogger(__name__)
@@ -26,7 +26,6 @@ def main():
         assign_channel_event_to_handler(message, bus)
 
 
-# NOTE: Ask Andrew if there is clever Pythonic way of doing this?
 def assign_channel_event_to_handler(
     message: dict[Any, Any], bus: messagebus.MessageBus
 ):
@@ -40,40 +39,14 @@ def assign_channel_event_to_handler(
 
     payload = json.loads(message["data"])
     topic = str(channel, "utf-8")
-    match topic:
-        case events.EventChannelEnum.BENCHMARK_CREATED.value:
-            publish_benchmark_created_event(payload, bus)
-        case events.EventChannelEnum.PROJECT_CREATED.value:
-            publish_project_created_event(payload, bus)
-        case _:
-            logger.warning(f"Channel {channel} not found for message: {message}")
-            return
 
+    event = EVENT_MAPPER.get(topic, None)
+    if event is None:
+        logger.warning(f"Channel {channel} not found for message: {message}")
+        return
 
-def publish_benchmark_created_event(message_payload, bus):
-    logger.info(f"publish_benchmark_created_event with payload: {message_payload}")
-    event = events.BenchmarkCreated(
-        channel=events.EventChannelEnum.BENCHMARK_CREATED,
-        name=message_payload["name"],
-        benchmark_id=message_payload["benchmark_id"],
-        benchmark_type=message_payload["benchmark_type"],
-        target_infra=message_payload["target_infra"],
-        target_url=message_payload["target_url"],
-        target_release_version=message_payload["target_release_version"],
-        username=message_payload["username"],
-        password=message_payload["password"],
-    )
-    bus.handle(event)
-
-
-def publish_project_created_event(message_payload, bus):
-    logger.info(f"publish_project_created_event with payload: {message_payload}")
-    event = events.ProjectCreated(
-        channel=events.EventChannelEnum.PROJECT_CREATED,
-        target_url=message_payload["target_url"],
-        project_id=message_payload["project_id"],
-    )
-    bus.handle(event)
+    e = event(**payload)
+    bus.handle(e)
 
 
 if __name__ == "__main__":

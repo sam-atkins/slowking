@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import abc
+import logging.config
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -8,6 +9,8 @@ from sqlalchemy.orm.session import Session
 
 from slowking.adapters import repository
 from slowking.config import settings
+
+logger = logging.getLogger(__name__)
 
 DEFAULT_SESSION_FACTORY = sessionmaker(
     bind=create_engine(
@@ -23,14 +26,15 @@ class AbstractUnitOfWork(abc.ABC):
     def __enter__(self) -> AbstractUnitOfWork:
         return self
 
-    def __exit__(self, *args):
-        self.rollback()
+    def __exit__(self, exc_type, exc_value, traceback):
+        if exc_type:
+            self._rollback()
+            return
+
+        self._commit()
 
     def flush(self):
         self._flush()
-
-    def commit(self):
-        self._commit()
 
     @abc.abstractmethod
     def _commit(self):
@@ -41,7 +45,7 @@ class AbstractUnitOfWork(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def rollback(self):
+    def _rollback(self):
         raise NotImplementedError
 
 
@@ -64,5 +68,5 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
     def _flush(self):
         self.session.flush()
 
-    def rollback(self):
+    def _rollback(self):
         self.session.rollback()

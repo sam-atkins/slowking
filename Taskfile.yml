@@ -40,7 +40,7 @@ tasks:
   api-slowking-health:
     desc: Make a request to the slowking health/ endpoint using HTTPie
     cmds:
-      - http localhost:8283/health
+      - http localhost:8091/api/v1/health
 
   api-health:
     desc: Make requests to the /health endpoints using HTTPie

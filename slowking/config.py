@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     API_BENCHMARK_NAMESPACE_V1_STR: str = f"{API_V1_STR}/benchmarks"
 
+    OUTPUT_DIR: str = "/home/app/reports/"
+    OUTPUT_FILENAME: str = "report.csv"
+
     SLOWKING_REDIS_HOST: str
     SLOWKING_REDIS_PORT: str
     REDIS_CONFIG: Optional[dict[str, Any]] = None

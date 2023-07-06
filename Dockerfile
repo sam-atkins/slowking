@@ -39,5 +39,7 @@ WORKDIR /home/app
 
 COPY docker-entrypoint.sh docker-entrypoint.sh
 COPY ./slowking ./slowking
+COPY ./artifacts ./artifacts
+COPY ./reports ./reports
 
 ENTRYPOINT /home/app/docker-entrypoint.sh $0 $@

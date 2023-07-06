@@ -4,9 +4,6 @@ Benchmarking domain entities
 from __future__ import annotations
 
 from datetime import datetime
-from typing import NewType
-
-TimeStamp = NewType("TimeStamp", datetime)
 
 
 class Benchmark:
@@ -28,47 +25,35 @@ class Benchmark:
         self,
         name: str,
         benchmark_type: str,
-        release_version: str,
+        eigen_platform_version: str,
         target_infra: str,
         target_url: str,
         username: str,
         password: str,
         project: Project,
-        version_number: int = 0,
     ):
         self.name = name
         self.benchmark_type = benchmark_type
-        self.release_version = release_version
-        self.version_number = version_number
+        self.eigen_platform_version = eigen_platform_version
         self.target_infra = target_infra
         self.target_url = target_url
         self.username = username
         self.password = password
-        # artifacts (documents etc) - get from config? or hard code in the handler?
         self.project = project
 
     def __repr__(self):
         return f"<Benchmark {self.name}>"
-
-    # ?
-    def __eq__(self, other):
-        if not isinstance(other, Benchmark):
-            return NotImplemented
-        return self.name == other.name and self.version_number == other.version_number
-
-    def __hash__(self):
-        return hash((self.name, self.version_number))
 
 
 class Project:
     def __init__(
         self,
         name: str,
-        documents: list[Document] = [],
+        document: list[Document] = [],
         eigen_project_id: int | None = None,
     ):
         self.name = name
-        self.documents = documents
+        self.document = document
         # need a count of the docs. include here? or get len(documents)?
         # artifact?
         self.eigen_project_id = eigen_project_id
@@ -78,19 +63,19 @@ class Project:
 
 
 class Document:
-    upload_time_start: TimeStamp
-    upload_time_end: TimeStamp
+    upload_time_start: datetime
+    upload_time_end: datetime
 
     def __init__(
         self,
         name: str,
         file_path: str,
-        document_id: str = "",
+        eigen_document_id: str = "",
         eigen_project_id: str = "",
     ):
         self.name = name
         self.file_path = file_path
-        self.document_id = document_id
+        self.eigen_document_id = eigen_document_id
         self.eigen_project_id = eigen_project_id
         # self.version_number = version_number: int = 0,  # ?
 
@@ -99,6 +84,8 @@ class Document:
 
     @property
     def upload_time(self):
-        if not self.upload_time_start and not self.upload_time_end:
+        """Calculate the upload time of the document"""
+        if self.upload_time_start is None or self.upload_time_end is None:
             return None
-        return self.upload_time_end - self.upload_time_start
+        upload_time = self.upload_time_end - self.upload_time_start
+        return upload_time.total_seconds()
