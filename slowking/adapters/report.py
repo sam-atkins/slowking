@@ -1,10 +1,15 @@
 """
 Report generation adapters.
 """
+import abc
 import csv
 import datetime
+import logging.config
 
 from slowking.domain import model
+
+logger = logging.getLogger(__name__)
+
 
 # TODO move to config, switch to docker path
 # OUTPUT_DIR = "/home/app/reports"
@@ -12,26 +17,26 @@ OUTPUT_DIR = "./reports/"
 OUTPUT_FILENAME = "report.csv"
 
 
-def create_report(benchmark: model.Benchmark):
+# is the ABC necessary?
+class AbstractReporter:
+    @abc.abstractmethod
+    def create(self, benchmark: model.Benchmark):
+        raise NotImplementedError
+
+
+class LatencyReport(AbstractReporter):
     """
-    Create report for given benchmark.
+    Latency report generator. Creates a CSV file with document upload times.
     """
-    base_info = {
-        "Benchmark Name": benchmark.name,
-        "Benchmark Type": benchmark.benchmark_type,
-        "Infra": benchmark.target_infra,
-        "Eigen Version": benchmark.eigen_platform_version,
-    }
-    fields = []
-    for doc in benchmark.project.document:
-        doc_info = {
-            "Doc Name": doc.name,
-            "Upload Time (seconds)": doc.upload_time,
-        }
-        fields.append({**base_info, **doc_info})
-    print(f"=== create_report :: fields === : {fields}")
-    with open(f"{OUTPUT_DIR}{OUTPUT_FILENAME}", "w") as csv_file:
-        # TODO these are the headers e.g. "benchmark name", "doc name", "upload time"
+
+    output_dir: str = OUTPUT_DIR
+    output_filename: str = OUTPUT_FILENAME
+
+    @classmethod
+    def create(cls, benchmark: model.Benchmark):
+        """
+        Create report for given benchmark.
+        """
         fieldnames = [
             "Benchmark Name",
             "Benchmark Type",
@@ -40,13 +45,30 @@ def create_report(benchmark: model.Benchmark):
             "Doc Name",
             "Upload Time (seconds)",
         ]
-
-        csv_writer = csv.DictWriter(
-            csv_file, delimiter=",", quoting=csv.QUOTE_MINIMAL, fieldnames=fieldnames
-        )
-        csv_writer.writeheader()
-        for field in fields:
-            csv_writer.writerow(field)
+        base_info = {
+            "Benchmark Name": benchmark.name,
+            "Benchmark Type": benchmark.benchmark_type,
+            "Infra": benchmark.target_infra,
+            "Eigen Version": benchmark.eigen_platform_version,
+        }
+        fields = []
+        for doc in benchmark.project.document:
+            doc_info = {
+                "Doc Name": doc.name,
+                "Upload Time (seconds)": doc.upload_time,
+            }
+            fields.append({**base_info, **doc_info})
+        with open(f"{cls.output_dir}{cls.output_filename}", "w") as csv_file:
+            csv_writer = csv.DictWriter(
+                csv_file,
+                delimiter=",",
+                quoting=csv.QUOTE_MINIMAL,
+                fieldnames=fieldnames,
+            )
+            csv_writer.writeheader()
+            for field in fields:
+                csv_writer.writerow(field)
+        logger.info("=== LatencyReport created ===")
 
 
 if __name__ == "__main__":
@@ -74,4 +96,5 @@ if __name__ == "__main__":
         password="test pw",
         project=model.Project(name="test project", document=[doc, doc2]),
     )
-    create_report(benchmark)
+    LatencyReport.create(benchmark)
+    # create_report(benchmark)
