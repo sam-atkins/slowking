@@ -38,6 +38,7 @@ RUN poetry install
 WORKDIR /home/app
 
 COPY docker-entrypoint.sh docker-entrypoint.sh
+COPY db_ready.py db_ready.py
 COPY alembic.ini alembic.ini
 COPY ./slowking ./slowking
 COPY ./artifacts ./artifacts

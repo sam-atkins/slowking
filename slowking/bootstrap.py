@@ -2,9 +2,7 @@ import logging.config
 from typing import Callable, Type
 
 from slowking.adapters import orm, redis_event_publisher
-from slowking.adapters.db_engine import init_db
 from slowking.adapters.notifications import AbstractNotifications, LogNotifications
-from slowking.config import settings
 from slowking.domain import commands, events
 from slowking.service_layer import handlers, messagebus
 
@@ -19,7 +17,6 @@ def bootstrap(
     publish: Callable[[events.Event], None] = redis_event_publisher.publish,
 ) -> messagebus.MessageBus:
     if start_orm:
-        init_db(db_uri=settings.SQLALCHEMY_DATABASE_URI, echo=True)  # type: ignore
         orm.start_mappers()
         logger.info("Bootstrap DB and ORM setup completed")
 

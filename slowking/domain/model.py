@@ -54,8 +54,6 @@ class Project:
     ):
         self.name = name
         self.document = document
-        # need a count of the docs. include here? or get len(documents)?
-        # artifact?
         self.eigen_project_id = eigen_project_id
 
     def __repr__(self):
@@ -71,13 +69,10 @@ class Document:
         name: str,
         file_path: str,
         eigen_document_id: int | None = None,
-        eigen_project_id: str = "",
     ):
         self.name = name
         self.file_path = file_path
         self.eigen_document_id = eigen_document_id
-        self.eigen_project_id = eigen_project_id
-        # self.version_number = version_number: int = 0,  # ?
 
     def __repr__(self):
         return f"<Document {self.name}>"

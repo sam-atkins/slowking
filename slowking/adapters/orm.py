@@ -51,7 +51,7 @@ document = Table(
     Column("project_id", ForeignKey("project.id")),
     Column("name", String(255)),
     Column("file_path", String(255)),
-    Column("eigen_document_id", Integer()),
+    Column("eigen_document_id", Integer(), nullable=True),
     Column("upload_time_start", DateTime()),
     Column("upload_time_end", DateTime()),
 )

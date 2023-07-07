@@ -1,16 +1,16 @@
 """
-Change document column name to eigen_document_id
+change document column name to eigen_document_id
 
-Revision ID: e721ff10752f
-Revises:
-Create Date: 2023-07-06 17:41:41.755847
+Revision ID: 06c957226763
+Revises: 2018945ef499
+Create Date: 2023-07-07 09:23:44.784643
 """
 import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = "e721ff10752f"
-down_revision = None
+revision = "06c957226763"
+down_revision = "2018945ef499"
 branch_labels = None
 depends_on = None
 
