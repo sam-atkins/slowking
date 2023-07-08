@@ -31,7 +31,7 @@ project = sa.Table(
     "project",
     metadata,
     sa.Column("id", sa.Integer, primary_key=True, autoincrement=True),
-    sa.Column("benchmark_id", sa.ForeignKey("benchmark.id")),
+    sa.Column("benchmark_id", sa.Integer, sa.ForeignKey("benchmark.id")),
     sa.Column("name", sa.String(255)),
     sa.Column("eigen_project_id", sa.Integer(), nullable=True),
 )
@@ -40,7 +40,7 @@ document = sa.Table(
     "document",
     metadata,
     sa.Column("id", sa.Integer, primary_key=True, autoincrement=True),
-    sa.Column("project_id", sa.ForeignKey("project.id")),
+    sa.Column("project_id", sa.Integer, sa.ForeignKey("project.id")),
     sa.Column("name", sa.String(255)),
     sa.Column("file_path", sa.String(255)),
     sa.Column("eigen_document_id", sa.Integer(), nullable=True),
