@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from logging import getLogger
 from typing import Any, Optional
 
@@ -14,7 +15,9 @@ class Settings(BaseSettings):
     API_BENCHMARK_NAMESPACE_V1_STR: str = f"{API_V1_STR}/benchmarks"
 
     OUTPUT_DIR: str = "/home/app/reports/"
-    OUTPUT_FILENAME: str = "report.csv"
+    OUTPUT_FILENAME: str = (
+        f"report_{datetime.now(timezone.utc).strftime('%Y_%m_%d__%H_%M_%S')}.csv"
+    )
 
     SLOWKING_REDIS_HOST: str
     SLOWKING_REDIS_PORT: str
