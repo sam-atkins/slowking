@@ -5,6 +5,7 @@ This is a proof of concept benchmarking app/tool with an event-driven architectu
 - [slowking](#slowking)
   - [Design Principles](#design-principles)
   - [Setup](#setup)
+  - [Database Migrations](#database-migrations)
   - [Design Notes](#design-notes)
     - [Commands](#commands)
     - [Events](#events)
@@ -36,6 +37,20 @@ There are also various tasks in the Taskfile:
 ```shell
 task --list
 ```
+
+## Database Migrations
+
+Alembic is used for migrations. To create a migration run this command in the activated venv.
+
+```shell
+alembic revision -m "<migration summary goes here>"
+```
+
+As the models are imperatively mapped, Alembic does not autogenerate the migration. The above command generates a 'template' which needs to be edited.
+
+Migrations are run as part of the docker-entrypoint script. To upgrade or downgrade migrations, exec into the running container.
+
+Link to [Alembic documentation](https://alembic.sqlalchemy.org/en/latest/index.html).
 
 ## Design Notes
 

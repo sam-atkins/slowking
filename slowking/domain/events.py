@@ -38,7 +38,7 @@ class BenchmarkCreated(Event):
 class DocumentUpdated(Event):
     channel: Literal[EventChannelEnum.DOCUMENT_UPDATED]
     benchmark_id: int
-    document_id: int  # NOTE this is the eigen document id
+    eigen_document_id: int
     document_name: str
     eigen_project_id: int
 

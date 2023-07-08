@@ -3,57 +3,49 @@ ORM module
 """
 import logging.config
 
-from sqlalchemy import (
-    Column,
-    DateTime,
-    ForeignKey,
-    Integer,
-    MetaData,
-    String,
-    Table,
-)
+import sqlalchemy as sa
 from sqlalchemy.orm import registry, relationship
 
 from slowking.domain import model
 
-metadata = MetaData()
+metadata = sa.MetaData()
 mapper_registry = registry()
 
 logger = logging.getLogger(__name__)
 
-benchmark = Table(
+benchmark = sa.Table(
     "benchmark",
     metadata,
-    Column("id", Integer, primary_key=True, autoincrement=True),
-    Column("name", String(255)),
-    Column("benchmark_type", String(255)),
-    Column("eigen_platform_version", String(255)),
-    Column("target_infra", String(255)),
-    Column("target_url", String(255)),
-    Column("password", String(255)),
-    Column("username", String(255)),
+    sa.Column("id", sa.Integer, primary_key=True, autoincrement=True),
+    sa.Column("name", sa.String(255), nullable=False),
+    sa.Column("benchmark_type", sa.String(255)),
+    sa.Column("eigen_platform_version", sa.String(255)),
+    sa.Column("target_infra", sa.String(255)),
+    sa.Column("target_url", sa.String(255)),
+    sa.Column("password", sa.String(255)),
+    sa.Column("username", sa.String(255)),
 )
 
 
-project = Table(
+project = sa.Table(
     "project",
     metadata,
-    Column("id", Integer, primary_key=True, autoincrement=True),
-    Column("benchmark_id", ForeignKey("benchmark.id")),
-    Column("name", String(255)),
-    Column("eigen_project_id", Integer(), nullable=True),
+    sa.Column("id", sa.Integer, primary_key=True, autoincrement=True),
+    sa.Column("benchmark_id", sa.Integer, sa.ForeignKey("benchmark.id")),
+    sa.Column("name", sa.String(255)),
+    sa.Column("eigen_project_id", sa.Integer(), nullable=True),
 )
 
-document = Table(
+document = sa.Table(
     "document",
     metadata,
-    Column("id", Integer, primary_key=True, autoincrement=True),
-    Column("project_id", ForeignKey("project.id")),
-    Column("name", String(255)),
-    Column("file_path", String(255)),
-    Column("document_id", Integer()),
-    Column("upload_time_start", DateTime()),
-    Column("upload_time_end", DateTime()),
+    sa.Column("id", sa.Integer, primary_key=True, autoincrement=True),
+    sa.Column("project_id", sa.Integer, sa.ForeignKey("project.id")),
+    sa.Column("name", sa.String(255)),
+    sa.Column("file_path", sa.String(255)),
+    sa.Column("eigen_document_id", sa.Integer(), nullable=True),
+    sa.Column("upload_time_start", sa.DateTime(), nullable=True),
+    sa.Column("upload_time_end", sa.DateTime(), nullable=True),
 )
 
 

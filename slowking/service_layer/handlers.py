@@ -158,7 +158,7 @@ def update_document(
         events.DocumentUpdated(
             channel=events.EventChannelEnum.DOCUMENT_UPDATED,
             benchmark_id=benchmark_id,
-            document_id=int(cmd.eigen_document_id),  # fix name and int or str
+            eigen_document_id=int(cmd.eigen_document_id),
             document_name=cmd.document_name,
             eigen_project_id=int(cmd.eigen_project_id),
         )
