@@ -5,11 +5,10 @@ import logging.config
 from http import HTTPStatus
 from logging import getLogger
 
-from fastapi import APIRouter, BackgroundTasks, Request, Response
+from fastapi import APIRouter, BackgroundTasks, Response
 from pydantic import BaseModel
 
 from slowking import bootstrap, config
-from slowking.adapters.redis_event_publisher import publish
 from slowking.config import settings
 from slowking.domain import commands
 
@@ -32,20 +31,6 @@ def publish_to_bus(cmd: commands.Command):
 @router.get("/channels")
 def channels():
     return {"channels": settings.REDIS_SUBSCRIBE_CHANNELS}
-
-
-@router.post("/events/publish")
-async def publish_event(request: Request, background_tasks: BackgroundTasks):
-    """
-    Publish an event to the eventbus. This is intended for dev purposes only. Publish a
-    command via the command specific endpoint instead.
-    """
-    payload = await request.json()
-    channel = payload.get("channel")
-    logger.info(f"API /events/publish publishing message to channel: {channel}")
-    background_tasks.add_task(publish, payload)
-
-    return Response(status_code=HTTPStatus.ACCEPTED)
 
 
 class BenchmarkPayload(BaseModel):
