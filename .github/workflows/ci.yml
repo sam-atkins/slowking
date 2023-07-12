@@ -1,12 +1,10 @@
 name: CI
 
-# TODO replace once all working
-on: [push, pull_request]
-# on:
-#   push:
-#     branches: [ "main" ]
-#   pull_request:
-#     branches: [ "main" ]
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 permissions:
   contents: read
@@ -30,7 +28,6 @@ jobs:
       uses: arduino/setup-task@v1
       with:
         version: 3.x
-        # repo-token: ${{ secrets.GITHUB_TOKEN }}
     - name: Install dependencies
       run: poetry install
     - name: Lint and format check
