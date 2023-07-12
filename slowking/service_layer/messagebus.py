@@ -70,7 +70,6 @@ class MessageBus:
             try:
                 logger.info(f"handle_event {event} with handler {handler}")
                 handler(event)
-                # self.queue.extend(self.uow.collect_new_events())
             except Exception:
                 logger.exception("Exception handling event %s", event)
                 continue
