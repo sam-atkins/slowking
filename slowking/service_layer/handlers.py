@@ -135,7 +135,7 @@ def update_document(
     uow = unit_of_work.SqlAlchemyUnitOfWork()
     with uow:
         bm = uow.benchmarks.get_by_host_and_project_id(
-            host=cmd.benchmark_host_name, project_id=cmd.eigen_project_id
+            host=cmd.benchmark_host_name, project_id=int(cmd.eigen_project_id)
         )
         logger.info(f"=== bm === : {bm}")
         benchmark_id = bm.id

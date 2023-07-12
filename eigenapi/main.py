@@ -91,6 +91,10 @@ def fake_document_uploader(files: list[UploadFile], document_type_id: str):
     """
     fake_doc_id = 10
     for _file in files:
+        # hack to avoid typing errors, if a file was malformed/incorrect, we'd
+        # want to log and/or raise an error
+        if not _file.filename:
+            continue
         doc_start_time = datetime.now(timezone.utc).timestamp()
         send_command_to_eventbus(
             filename=_file.filename,
@@ -127,7 +131,7 @@ def send_command_to_eventbus(
 ):
     payload = UpdateDocument(
         document_name=filename,
-        eigen_document_id=eigen_document_id,
+        eigen_document_id=str(eigen_document_id),
         eigen_project_id=eigen_project_id,
         benchmark_host_name=BENCHMARK_HOST_NAME,
         start_time=start_time,

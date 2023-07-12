@@ -232,7 +232,7 @@ class EigenClient(Session):
         return True
 
     @property
-    def csrf_token(self) -> str:
+    def csrf_token(self) -> str | None:
         """Return the csrf_token.
 
         Returns:
