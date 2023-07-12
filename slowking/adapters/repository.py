@@ -22,7 +22,7 @@ class AbstractRepository(abc.ABC):
         benchmark = self._get_by_name(name)
         return benchmark
 
-    def get_by_host_and_project_id(self, host: str, project_id: str) -> model.Benchmark:
+    def get_by_host_and_project_id(self, host: str, project_id: int) -> model.Benchmark:
         benchmark = self._get_by_host_and_project_id(host, project_id)
         return benchmark
 
@@ -38,9 +38,9 @@ class AbstractRepository(abc.ABC):
     def _get_by_name(self, name) -> model.Benchmark:
         raise NotImplementedError
 
-    @abc.abstractclassmethod
+    @abc.abstractmethod
     def _get_by_host_and_project_id(
-        self, host: str, project_id: str
+        self, host: str, project_id: int
     ) -> model.Benchmark:
         raise NotImplementedError
 
@@ -64,7 +64,7 @@ class SqlAlchemyRepository(AbstractRepository):
         return self.session.query(model.Benchmark).filter_by(name=name).first()
 
     def _get_by_host_and_project_id(
-        self, host: str, project_id: str
+        self, host: str, project_id: int
     ) -> model.Benchmark:
         return (
             self.session.query(model.Benchmark)

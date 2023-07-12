@@ -1,19 +1,18 @@
 name: CI
 
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+on: [push, pull_request]
+# on:
+#   push:
+#     branches: [ "main" ]
+#   pull_request:
+#     branches: [ "main" ]
 
 permissions:
   contents: read
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python 3.11
@@ -34,3 +33,24 @@ jobs:
       run: task fmt-check
     - name: Test with pytest
       run: task test
+    - name: Run mypy
+      run: task mypy
+
+
+# FIXME built env in build is not shared to lint, test jobs
+# https://docs.docker.com/build/ci/github-actions/share-image-jobs/
+# or
+# https://github.com/cdalvaro/docker-salt-master/blob/c556e06e5527cc2dc95966039858671f5f16cebe/.github/workflows/build-and-test.yml
+
+    # lint:
+  #   runs-on: ubuntu-latest
+  #   needs: build
+  #   steps:
+  #   - name: Lint and formatting check
+  #     run: task fmt-check
+  # test:
+  #   runs-on: ubuntu-latest
+  #   needs: build
+  #   steps:
+  #   - name: Test with pytest
+  #     run: task test
