@@ -94,8 +94,7 @@ tasks:
   mypy:
     desc: Run type checking (locally, not in Docker)
     cmds:
-      - source .venv/bin/activate
-      - mypy . --check-untyped-defs
+      - poetry run mypy . --check-untyped-defs
 
   lint:
     desc: Run ruff
@@ -116,8 +115,8 @@ tasks:
   fmt-check:
     desc: "Checks code formatting using ruff and black"
     cmds:
-      - ruff check .
-      - black --check slowking/ eigenapi/ tests/
+      - poetry run ruff check .
+      - poetry run black --check slowking/ eigenapi/ tests/
 
   test:
     desc: Run tests (locally, not in Docker)
