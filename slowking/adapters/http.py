@@ -136,7 +136,7 @@ class EigenClient(Session):
         wait=wait_fixed(WAIT_FIXED) + wait_random(WAIT_MIN, WAIT_MAX),
         stop=stop_after_attempt(RETRIES),
     )
-    def request(self, method: str, url: str, **kwargs) -> Response:
+    def request(self, method: str, url: str, **kwargs) -> Response:  # type: ignore
         """Override the base Session.request.
 
         Adds re-authentication logic to the `request` method.
