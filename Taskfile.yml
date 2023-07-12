@@ -120,6 +120,7 @@ tasks:
 
   test:
     desc: Run tests (locally, not in Docker)
+    dotenv: ["./.env.dev"]
     cmds:
       - poetry run pytest -vv
 
