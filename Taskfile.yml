@@ -99,12 +99,12 @@ tasks:
   lint:
     desc: Run ruff
     cmds:
-      - ruff --fix .
+      - poetry run ruff --fix .
 
   black:
     desc: Run black
     cmds:
-      - black slowking/ eigenapi/ tests/
+      - poetry run black slowking/ eigenapi/ tests/
 
   fmt:
     desc: "Formats code using ruff and black"
