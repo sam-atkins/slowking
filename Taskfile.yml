@@ -113,6 +113,12 @@ tasks:
       - task: lint
       - task: black
 
+  fmt-check:
+    desc: "Checks code formatting using ruff and black"
+    cmds:
+      - ruff check .
+      - black --check slowking/ eigenapi/ tests/
+
   test:
     desc: Run tests (locally, not in Docker)
     cmds:
