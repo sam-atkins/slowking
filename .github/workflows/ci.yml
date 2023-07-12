@@ -1,19 +1,18 @@
 name: CI
 
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+on: [push, pull_request]
+# on:
+#   push:
+#     branches: [ "main" ]
+#   pull_request:
+#     branches: [ "main" ]
 
 permissions:
   contents: read
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python 3.11
@@ -30,7 +29,15 @@ jobs:
         version: 3.x
     - name: Install dependencies
       run: poetry install
-    - name: Lint and format check
+  lint:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - name: Lint and formatting check
       run: task fmt-check
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
     - name: Test with pytest
       run: task test
