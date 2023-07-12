@@ -94,8 +94,7 @@ tasks:
   mypy:
     desc: Run type checking (locally, not in Docker)
     cmds:
-      - source .venv/bin/activate
-      - mypy . --check-untyped-defs
+      - poetry run mypy . --check-untyped-defs
 
   lint:
     desc: Run ruff
@@ -113,11 +112,17 @@ tasks:
       - task: lint
       - task: black
 
+  fmt-check:
+    desc: "Checks code formatting using ruff and black"
+    cmds:
+      - poetry run ruff check .
+      - poetry run black --check slowking/ eigenapi/ tests/
+
   test:
     desc: Run tests (locally, not in Docker)
+    dotenv: ["./.env.dev"]
     cmds:
-      - source .venv/bin/activate
-      - pytest -vv
+      - poetry run pytest -vv
 
   nuke:
     desc: Stop and remove all containers, networks, volumes and postgres-data
