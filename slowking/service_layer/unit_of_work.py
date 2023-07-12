@@ -21,8 +21,6 @@ DEFAULT_SESSION_FACTORY = sessionmaker(
 
 
 class AbstractUnitOfWork(abc.ABC):
-    benchmarks: repository.AbstractRepository
-
     def __enter__(self) -> AbstractUnitOfWork:
         return self
 
@@ -50,6 +48,12 @@ class AbstractUnitOfWork(abc.ABC):
 
 
 class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
+    """
+    Unit of Work for SQLAlchemy
+    """
+
+    benchmarks: repository.AbstractRepository
+
     def __init__(self, session_factory=DEFAULT_SESSION_FACTORY):
         self.session_factory = session_factory
 
@@ -58,8 +62,8 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
         self.benchmarks = repository.SqlAlchemyRepository(self.session)
         return super().__enter__()
 
-    def __exit__(self, *args):
-        super().__exit__(*args)
+    def __exit__(self, exc_type, exc_value, traceback):
+        super().__exit__(exc_type, exc_value, traceback)
         self.session.close()
 
     def _commit(self):

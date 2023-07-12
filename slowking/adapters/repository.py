@@ -46,6 +46,10 @@ class AbstractRepository(abc.ABC):
 
 
 class SqlAlchemyRepository(AbstractRepository):
+    """
+    Repository for the Benchmark aggregate model, using SQLAlchemy
+    """
+
     def __init__(self, session):
         super().__init__()
         self.session = session

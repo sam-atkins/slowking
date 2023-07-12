@@ -164,7 +164,7 @@ None
 
 ### Concurrent DB connection issues
 
-Resolved by not injecting the UoW into bootstrap. Instead the handler instantiates its own UoW i.e. it is a session just for that handler.
+Resolved by not injecting the UoW into bootstrap. Instead the handler instantiates its own UoW i.e. it is a session just for that handler. Drawback of this approach is cannot inject a mock UoW for tests.
 
 ```
 sqlalchemy.exc.InvalidRequestError: Object '<Benchmark at 0xffff8d290fd0>' is already attached to session '5' (this is '6')
@@ -185,3 +185,14 @@ https://github.com/sqlalchemy/sqlalchemy/discussions/8554
 https://github.com/sqlalchemy/sqlalchemy/discussions/9114
 
 https://docs.sqlalchemy.org/en/20/orm/extensions/asyncio.html#synopsis-core
+
+
+
+```
+raise sa_exc.InvalidRequestError(
+slowking-api-eventbus    | sqlalchemy.exc.InvalidRequestError: Object '<Benchmark at 0xffff8ab36a90>' is already attached to session '5' (this is '6')
+
+
+raise sa_exc.IllegalStateChangeError(
+slowking-api-eventbus    | sqlalchemy.exc.IllegalStateChangeError: Method 'close()' can't be called here; method '_connection_for_bind()' is already in progress and this would cause an unexpected state change to <SessionTransactionState.CLOSED: 5> (Background on this error at: https://sqlalche.me/e/20/isce)
+```
