@@ -122,7 +122,13 @@ tasks:
     desc: Run tests (locally, not in Docker)
     dotenv: ["./.env.test"]
     cmds:
-      - poetry run pytest -vv
+      - poetry run pytest -v
+
+  cov:
+    desc: Run tests (locally, not in Docker) with coverage
+    dotenv: ["./.env.test"]
+    cmds:
+      - poetry run pytest -v --cov
 
   pre:
     desc: "Pre runs various pre-CI tasks to prepare a diff before committing"
