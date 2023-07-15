@@ -2,6 +2,7 @@ import logging.config
 from typing import Callable, Type
 
 from slowking.adapters import orm, redis_event_publisher
+from slowking.adapters.http import EigenClient
 from slowking.adapters.notifications import AbstractNotifications, LogNotifications
 from slowking.domain import commands, events
 from slowking.service_layer import handlers, messagebus, unit_of_work
@@ -14,6 +15,7 @@ def bootstrap(
     notifications: AbstractNotifications = None,  # type: ignore
     publish: Callable[[events.Event], None] = redis_event_publisher.publish,
     uow: unit_of_work.AbstractUnitOfWork = unit_of_work.SqlAlchemyUnitOfWork(),
+    client: type[EigenClient] = EigenClient,
 ) -> messagebus.MessageBus:
     if start_orm:
         orm.start_mappers()
@@ -38,10 +40,10 @@ def bootstrap(
     injected_event_handlers: dict[Type[events.Event], list[Callable]] = {
         events.BenchmarkCreated: [
             lambda e: handlers.get_artifacts(e),
-            lambda e: handlers.create_project(e, uow, publish),
+            lambda e: handlers.create_project(e, uow, publish, client),
         ],
         events.ProjectCreated: [
-            lambda e: handlers.upload_documents(e),
+            lambda e: handlers.upload_documents(e, client),
         ],
         events.DocumentUpdated: [
             lambda e: handlers.check_all_documents_uploaded(e, uow, publish),

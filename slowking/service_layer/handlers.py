@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from typing import Callable
 
 from sqlalchemy.exc import IllegalStateChangeError, InvalidRequestError
+from sqlalchemy.orm.exc import DetachedInstanceError
 
 from slowking.adapters.http import EigenClient
 from slowking.adapters.report import LatencyReport
@@ -78,16 +79,17 @@ def create_project(
     event: events.BenchmarkCreated,
     uow: unit_of_work.AbstractUnitOfWork,
     publish: Callable[[events.Event], None],
+    client: type[EigenClient],
 ):
     logger.info("=== Called create_project ===")
     logger.info(f"create_project event: {event}")
 
-    client = EigenClient(
+    eigen = client(
         base_url=event.target_url,
         username=event.username,
         password=event.password.get_secret_value(),
     )
-    project = client.create_project(name=event.name, description=event.benchmark_type)
+    project = eigen.create_project(name=event.name, description=event.benchmark_type)
     logger.info(f"=== create_project :: project response === : {project}")
     project_id = project.document_type_id
 
@@ -109,7 +111,10 @@ def create_project(
     )
 
 
-def upload_documents(event: events.ProjectCreated):
+def upload_documents(
+    event: events.ProjectCreated,
+    client: type[EigenClient],
+):
     logger.info("=== Called upload_documents ===")
     logger.info(f"upload_documents event: {event}")
     # TODO using hardcoded artifacts dir to get docs for upload, move to settings
@@ -118,12 +123,12 @@ def upload_documents(event: events.ProjectCreated):
     f_list = list(files.__iter__())
     logger.info(f"=== upload_documents :: f_list === : {f_list}")
 
-    client = EigenClient(
+    eigen = client(
         base_url=event.target_url,
         username=event.username,
         password=event.password.get_secret_value(),
     )
-    response = client.upload_files(project_id=event.eigen_project_id, files=f_list)
+    response = eigen.upload_files(project_id=event.eigen_project_id, files=f_list)
     logger.info(f"=== upload_documents :: response === : {response}")
     logger.info("=== Upload Documents completed ===")
 
@@ -161,9 +166,9 @@ def update_document(
                         break
 
                 uow.benchmarks.add(bm)
-        except (InvalidRequestError, IllegalStateChangeError):
+        except (DetachedInstanceError, IllegalStateChangeError, InvalidRequestError):
             logger.info(
-                "=== update_document DB concurrency exception caught, retrying ==="
+                f"===DB exception when updating doc {cmd.document_name}, retrying."
             )
             time.sleep(settings.DB_RETRY_INTERVAL)
 
