@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 def create_benchmark(
     cmd: commands.CreateBenchmark,
+    uow: unit_of_work.AbstractUnitOfWork,
     publish: Callable[[events.Event], None],
 ):
     logger.info("=== Called create_benchmark handler ===")
@@ -24,7 +25,6 @@ def create_benchmark(
     # NOTE placeholder for benchmark.id to avoid DetachedInstanceError Session issues
     benchmark_id: int
 
-    uow = unit_of_work.SqlAlchemyUnitOfWork()
     with uow:
         documents = []
         files = pathlib.Path("/home/app/artifacts").glob("*.txt")
@@ -75,6 +75,7 @@ def get_artifacts(event: events.BenchmarkCreated):
 
 def create_project(
     event: events.BenchmarkCreated,
+    uow: unit_of_work.AbstractUnitOfWork,
     publish: Callable[[events.Event], None],
 ):
     logger.info("=== Called create_project ===")
@@ -89,7 +90,6 @@ def create_project(
     logger.info(f"=== create_project :: project response === : {project}")
     project_id = project.document_type_id
 
-    uow = unit_of_work.SqlAlchemyUnitOfWork()
     with uow:
         benchmark = uow.benchmarks.get_by_id(event.benchmark_id)
         benchmark.project.eigen_project_id = project_id
@@ -129,8 +129,8 @@ def upload_documents(event: events.ProjectCreated):
 
 def update_document(
     cmd: commands.UpdateDocument,
-    publish: Callable[[events.Event], None],
     uow: unit_of_work.AbstractUnitOfWork,
+    publish: Callable[[events.Event], None],
 ):
     logger.info("=== Called update_document ===")
     logger.info(f"update_document cmd: {cmd}")
@@ -179,12 +179,12 @@ def update_document(
 
 def check_all_documents_uploaded(
     event: events.DocumentUpdated,
+    uow: unit_of_work.AbstractUnitOfWork,
     publish: Callable[[events.Event], None],
 ):
     logger.info("=== Called check_all_documents_uploaded ===")
     logger.info(f"check_all_documents_uploaded event: {event}")
 
-    uow = unit_of_work.SqlAlchemyUnitOfWork()
     with uow:
         bm = uow.benchmarks.get_by_id(event.benchmark_id)
         logger.info(f"=== check_all_documents_uploaded bm === : {bm}")
@@ -209,9 +209,10 @@ def check_all_documents_uploaded(
             )
 
 
-def create_report(event: events.AllDocumentsUploaded):
+def create_report(
+    event: events.AllDocumentsUploaded, uow: unit_of_work.AbstractUnitOfWork
+):
     logger.info(f"=== Called create_report with {event} ===")
-    uow = unit_of_work.SqlAlchemyUnitOfWork()
     with uow:
         bm = uow.benchmarks.get_by_id(event.benchmark_id)
         logger.info(f"=== create_report bm === : {bm}")

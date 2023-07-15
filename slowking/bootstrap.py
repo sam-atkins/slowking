@@ -25,25 +25,31 @@ def bootstrap(
         notifications = LogNotifications()
 
     injected_command_handlers: dict[Type[commands.Command], list[Callable]] = {
-        commands.CreateBenchmark: [lambda c: handlers.create_benchmark(c, publish)],
+        commands.CreateBenchmark: [
+            lambda c: handlers.create_benchmark(c, uow, publish)
+        ],
         commands.UpdateDocument: [
-            lambda e: handlers.update_document(e, publish, uow),
+            lambda e: handlers.update_document(
+                e,
+                uow,
+                publish,
+            ),
         ],
     }
 
     injected_event_handlers: dict[Type[events.Event], list[Callable]] = {
         events.BenchmarkCreated: [
             lambda e: handlers.get_artifacts(e),
-            lambda e: handlers.create_project(e, publish),
+            lambda e: handlers.create_project(e, uow, publish),
         ],
         events.ProjectCreated: [
             lambda e: handlers.upload_documents(e),
         ],
         events.DocumentUpdated: [
-            lambda e: handlers.check_all_documents_uploaded(e, publish),
+            lambda e: handlers.check_all_documents_uploaded(e, uow, publish),
         ],
         events.AllDocumentsUploaded: [
-            lambda e: handlers.create_report(e),
+            lambda e: handlers.create_report(e, uow),
         ],
     }
 
