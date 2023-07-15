@@ -9,8 +9,6 @@ from slowking.service_layer import handlers, messagebus, unit_of_work
 logger = logging.getLogger(__name__)
 
 
-# Note, unit_of_work.SqlAlchemyUnitOfWork() is not injected into the handlers
-# to avoid concurrency issues with the db session
 def bootstrap(
     start_orm: bool = True,
     notifications: AbstractNotifications = None,  # type: ignore
@@ -54,6 +52,7 @@ def bootstrap(
     }
 
     return messagebus.MessageBus(
+        uow=uow,
         command_handlers=injected_command_handlers,
         event_handlers=injected_event_handlers,
     )
