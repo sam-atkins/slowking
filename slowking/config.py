@@ -13,7 +13,8 @@ logger = getLogger(__name__)
 class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     API_BENCHMARK_NAMESPACE_V1_STR: str = f"{API_V1_STR}/benchmarks"
-
+    DB_MAX_RETRIES: int = 10
+    DB_RETRY_INTERVAL: int = 1
     OUTPUT_DIR: str = "/home/app/reports/"
     OUTPUT_FILENAME: str = (
         f"report_{datetime.now(timezone.utc).strftime('%Y_%m_%d__%H_%M_%S')}.csv"

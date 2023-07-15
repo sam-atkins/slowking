@@ -8,6 +8,7 @@ from sqlalchemy.exc import IllegalStateChangeError, InvalidRequestError
 
 from slowking.adapters.http import EigenClient
 from slowking.adapters.report import LatencyReport
+from slowking.config import settings
 from slowking.domain import commands, events, model
 from slowking.service_layer import unit_of_work
 
@@ -136,7 +137,7 @@ def update_document(
     logger.info(f"update_document cmd: {cmd}")
     benchmark_id: int
 
-    for _ in range(0, 10):
+    for _ in range(0, settings.DB_MAX_RETRIES):
         try:
             with uow:
                 bm = uow.benchmarks.get_by_host_and_project_id(
@@ -164,7 +165,7 @@ def update_document(
             logger.info(
                 "=== update_document DB concurrency exception caught, retrying ==="
             )
-            time.sleep(1)
+            time.sleep(settings.DB_RETRY_INTERVAL)
 
     publish(
         events.DocumentUpdated(
