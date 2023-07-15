@@ -4,7 +4,7 @@ from typing import Callable, Type
 from slowking.adapters import orm, redis_event_publisher
 from slowking.adapters.notifications import AbstractNotifications, LogNotifications
 from slowking.domain import commands, events
-from slowking.service_layer import handlers, messagebus
+from slowking.service_layer import handlers, messagebus, unit_of_work
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +15,7 @@ def bootstrap(
     start_orm: bool = True,
     notifications: AbstractNotifications = None,  # type: ignore
     publish: Callable[[events.Event], None] = redis_event_publisher.publish,
+    uow: unit_of_work.AbstractUnitOfWork = unit_of_work.SqlAlchemyUnitOfWork(),
 ) -> messagebus.MessageBus:
     if start_orm:
         orm.start_mappers()
@@ -26,7 +27,7 @@ def bootstrap(
     injected_command_handlers: dict[Type[commands.Command], list[Callable]] = {
         commands.CreateBenchmark: [lambda c: handlers.create_benchmark(c, publish)],
         commands.UpdateDocument: [
-            lambda e: handlers.update_document(e, publish),
+            lambda e: handlers.update_document(e, publish, uow),
         ],
     }
 

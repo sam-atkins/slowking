@@ -1,7 +1,10 @@
 import logging
 import pathlib
+import time
 from datetime import datetime, timezone
 from typing import Callable
+
+from sqlalchemy.exc import IllegalStateChangeError, InvalidRequestError
 
 from slowking.adapters.http import EigenClient
 from slowking.adapters.report import LatencyReport
@@ -127,32 +130,41 @@ def upload_documents(event: events.ProjectCreated):
 def update_document(
     cmd: commands.UpdateDocument,
     publish: Callable[[events.Event], None],
+    uow: unit_of_work.AbstractUnitOfWork,
 ):
     logger.info("=== Called update_document ===")
     logger.info(f"update_document cmd: {cmd}")
     benchmark_id: int
 
-    uow = unit_of_work.SqlAlchemyUnitOfWork()
-    with uow:
-        bm = uow.benchmarks.get_by_host_and_project_id(
-            host=cmd.benchmark_host_name, project_id=int(cmd.eigen_project_id)
-        )
-        logger.info(f"=== bm === : {bm}")
-        benchmark_id = bm.id
+    for _ in range(0, 10):
+        try:
+            with uow:
+                bm = uow.benchmarks.get_by_host_and_project_id(
+                    host=cmd.benchmark_host_name, project_id=int(cmd.eigen_project_id)
+                )
+                logger.info(f"=== bm === : {bm}")
+                benchmark_id = bm.id
 
-        documents = bm.project.document
-        logger.info(f"=== documents === : {documents}")
-        for doc in documents:
-            if doc.name == cmd.document_name:
-                logger.info(f"=== doc === : {doc}")
-                if cmd.start_time:
-                    doc.upload_time_start = datetime.fromtimestamp(cmd.start_time)
-                if cmd.end_time:
-                    doc.upload_time_end = datetime.fromtimestamp(cmd.end_time)
-                logger.info(f"=== doc updated === : {doc}")
-                break
+                documents = bm.project.document
+                logger.info(f"=== documents === : {documents}")
+                for doc in documents:
+                    if doc.name == cmd.document_name:
+                        logger.info(f"=== doc === : {doc}")
+                        if cmd.start_time:
+                            doc.upload_time_start = datetime.fromtimestamp(
+                                cmd.start_time
+                            )
+                        if cmd.end_time:
+                            doc.upload_time_end = datetime.fromtimestamp(cmd.end_time)
+                        logger.info(f"=== doc updated === : {doc}")
+                        break
 
-        uow.benchmarks.add(bm)
+                uow.benchmarks.add(bm)
+        except (InvalidRequestError, IllegalStateChangeError):
+            logger.info(
+                "=== update_document DB concurrency exception caught, retrying ==="
+            )
+            time.sleep(1)
 
     publish(
         events.DocumentUpdated(
