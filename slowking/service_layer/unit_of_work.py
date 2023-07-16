@@ -21,6 +21,8 @@ DEFAULT_SESSION_FACTORY = sessionmaker(
 
 
 class AbstractUnitOfWork(abc.ABC):
+    benchmarks: repository.AbstractRepository
+
     def __enter__(self) -> AbstractUnitOfWork:
         return self
 
@@ -52,7 +54,7 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
     Unit of Work for SQLAlchemy
     """
 
-    benchmarks: repository.AbstractRepository
+    # benchmarks: repository.AbstractRepository
 
     def __init__(self, session_factory=DEFAULT_SESSION_FACTORY):
         self.session_factory = session_factory

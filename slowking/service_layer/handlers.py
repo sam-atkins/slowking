@@ -1,10 +1,15 @@
 import logging
 import pathlib
+import time
 from datetime import datetime, timezone
 from typing import Callable
 
+from sqlalchemy.exc import IllegalStateChangeError, InvalidRequestError
+from sqlalchemy.orm.exc import DetachedInstanceError
+
 from slowking.adapters.http import EigenClient
 from slowking.adapters.report import LatencyReport
+from slowking.config import settings
 from slowking.domain import commands, events, model
 from slowking.service_layer import unit_of_work
 
@@ -13,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 def create_benchmark(
     cmd: commands.CreateBenchmark,
+    uow: unit_of_work.AbstractUnitOfWork,
     publish: Callable[[events.Event], None],
 ):
     logger.info("=== Called create_benchmark handler ===")
@@ -21,7 +27,6 @@ def create_benchmark(
     # NOTE placeholder for benchmark.id to avoid DetachedInstanceError Session issues
     benchmark_id: int
 
-    uow = unit_of_work.SqlAlchemyUnitOfWork()
     with uow:
         documents = []
         files = pathlib.Path("/home/app/artifacts").glob("*.txt")
@@ -72,21 +77,22 @@ def get_artifacts(event: events.BenchmarkCreated):
 
 def create_project(
     event: events.BenchmarkCreated,
+    uow: unit_of_work.AbstractUnitOfWork,
     publish: Callable[[events.Event], None],
+    client: type[EigenClient],
 ):
     logger.info("=== Called create_project ===")
     logger.info(f"create_project event: {event}")
 
-    client = EigenClient(
+    eigen = client(
         base_url=event.target_url,
         username=event.username,
         password=event.password.get_secret_value(),
     )
-    project = client.create_project(name=event.name, description=event.benchmark_type)
+    project = eigen.create_project(name=event.name, description=event.benchmark_type)
     logger.info(f"=== create_project :: project response === : {project}")
     project_id = project.document_type_id
 
-    uow = unit_of_work.SqlAlchemyUnitOfWork()
     with uow:
         benchmark = uow.benchmarks.get_by_id(event.benchmark_id)
         benchmark.project.eigen_project_id = project_id
@@ -105,7 +111,10 @@ def create_project(
     )
 
 
-def upload_documents(event: events.ProjectCreated):
+def upload_documents(
+    event: events.ProjectCreated,
+    client: type[EigenClient],
+):
     logger.info("=== Called upload_documents ===")
     logger.info(f"upload_documents event: {event}")
     # TODO using hardcoded artifacts dir to get docs for upload, move to settings
@@ -114,45 +123,54 @@ def upload_documents(event: events.ProjectCreated):
     f_list = list(files.__iter__())
     logger.info(f"=== upload_documents :: f_list === : {f_list}")
 
-    client = EigenClient(
+    eigen = client(
         base_url=event.target_url,
         username=event.username,
         password=event.password.get_secret_value(),
     )
-    response = client.upload_files(project_id=event.eigen_project_id, files=f_list)
+    response = eigen.upload_files(project_id=event.eigen_project_id, files=f_list)
     logger.info(f"=== upload_documents :: response === : {response}")
     logger.info("=== Upload Documents completed ===")
 
 
 def update_document(
     cmd: commands.UpdateDocument,
+    uow: unit_of_work.AbstractUnitOfWork,
     publish: Callable[[events.Event], None],
 ):
     logger.info("=== Called update_document ===")
     logger.info(f"update_document cmd: {cmd}")
     benchmark_id: int
 
-    uow = unit_of_work.SqlAlchemyUnitOfWork()
-    with uow:
-        bm = uow.benchmarks.get_by_host_and_project_id(
-            host=cmd.benchmark_host_name, project_id=int(cmd.eigen_project_id)
-        )
-        logger.info(f"=== bm === : {bm}")
-        benchmark_id = bm.id
+    for _ in range(0, settings.DB_MAX_RETRIES):
+        try:
+            with uow:
+                bm = uow.benchmarks.get_by_host_and_project_id(
+                    host=cmd.benchmark_host_name, project_id=int(cmd.eigen_project_id)
+                )
+                logger.info(f"=== bm === : {bm}")
+                benchmark_id = bm.id
 
-        documents = bm.project.document
-        logger.info(f"=== documents === : {documents}")
-        for doc in documents:
-            if doc.name == cmd.document_name:
-                logger.info(f"=== doc === : {doc}")
-                if cmd.start_time:
-                    doc.upload_time_start = datetime.fromtimestamp(cmd.start_time)
-                if cmd.end_time:
-                    doc.upload_time_end = datetime.fromtimestamp(cmd.end_time)
-                logger.info(f"=== doc updated === : {doc}")
-                break
+                documents = bm.project.document
+                logger.info(f"=== documents === : {documents}")
+                for doc in documents:
+                    if doc.name == cmd.document_name:
+                        logger.info(f"=== doc === : {doc}")
+                        if cmd.start_time:
+                            doc.upload_time_start = datetime.fromtimestamp(
+                                cmd.start_time
+                            )
+                        if cmd.end_time:
+                            doc.upload_time_end = datetime.fromtimestamp(cmd.end_time)
+                        logger.info(f"=== doc updated === : {doc}")
+                        break
 
-        uow.benchmarks.add(bm)
+                uow.benchmarks.add(bm)
+        except (DetachedInstanceError, IllegalStateChangeError, InvalidRequestError):
+            logger.info(
+                f"===DB exception when updating doc {cmd.document_name}, retrying."
+            )
+            time.sleep(settings.DB_RETRY_INTERVAL)
 
     publish(
         events.DocumentUpdated(
@@ -167,12 +185,12 @@ def update_document(
 
 def check_all_documents_uploaded(
     event: events.DocumentUpdated,
+    uow: unit_of_work.AbstractUnitOfWork,
     publish: Callable[[events.Event], None],
 ):
     logger.info("=== Called check_all_documents_uploaded ===")
     logger.info(f"check_all_documents_uploaded event: {event}")
 
-    uow = unit_of_work.SqlAlchemyUnitOfWork()
     with uow:
         bm = uow.benchmarks.get_by_id(event.benchmark_id)
         logger.info(f"=== check_all_documents_uploaded bm === : {bm}")
@@ -197,9 +215,10 @@ def check_all_documents_uploaded(
             )
 
 
-def create_report(event: events.AllDocumentsUploaded):
+def create_report(
+    event: events.AllDocumentsUploaded, uow: unit_of_work.AbstractUnitOfWork
+):
     logger.info(f"=== Called create_report with {event} ===")
-    uow = unit_of_work.SqlAlchemyUnitOfWork()
     with uow:
         bm = uow.benchmarks.get_by_id(event.benchmark_id)
         logger.info(f"=== create_report bm === : {bm}")

@@ -15,6 +15,8 @@ This is a proof of concept benchmarking app/tool with an event-driven architectu
   - [Open Issues](#open-issues)
   - [Closed Issues](#closed-issues)
     - [Concurrent DB connection issues](#concurrent-db-connection-issues)
+      - [Solution 1](#solution-1)
+      - [Solution 2](#solution-2)
 
 ## Design Principles
 
@@ -164,6 +166,10 @@ None
 
 ### Concurrent DB connection issues
 
+#### Solution 1
+Wrap the uom in a try/catch and retry. The uow `__exit__` rollsback if there is an exception. This appears to work and means the uow can be injected into the handler, making testing much easier and cleaner.
+
+#### Solution 2
 Resolved by not injecting the UoW into bootstrap. Instead the handler instantiates its own UoW i.e. it is a session just for that handler. Drawback of this approach is cannot inject a mock UoW for tests.
 
 ```

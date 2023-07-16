@@ -26,6 +26,7 @@ types-redis = "^4.5.5.2"
 httpx = "^0.24.1"
 ruff = "^0.0.277"
 types-requests = "^2.31.0.1"
+pytest-cov = "^4.1.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -71,6 +72,13 @@ per-file-ignores = {}
 
 # Same as Black.
 line-length = 88
+
+[tool.coverage.run]
+branch = true
+omit = ["tests/*", "slowking/alembic/*"]
+
+[tool.coverage.html]
+directory = "coverage_html_report"
 
 [tool.ruff.isort]
 known-third-party = [
