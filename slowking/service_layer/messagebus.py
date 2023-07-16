@@ -73,6 +73,6 @@ class MessageBus:
             try:
                 logger.info(f"handle_event {event} with handler {handler}")
                 handler(event)
-            except Exception:
-                logger.exception("Exception handling event %s", event)
+            except Exception as ex:
+                logger.exception(f"Exception {ex} handling event {event}")
                 continue

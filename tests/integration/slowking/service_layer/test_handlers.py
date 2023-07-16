@@ -1,10 +1,13 @@
+import uuid
 from collections import defaultdict
+from datetime import datetime, timezone
 
 from pydantic import SecretStr
 
 from slowking import bootstrap
 from slowking.adapters import notifications, repository
-from slowking.domain import commands
+from slowking.adapters.http import EigenClient, ProjectStruct
+from slowking.domain import commands, events
 from slowking.service_layer import unit_of_work
 
 
@@ -57,12 +60,30 @@ class FakeNotifications(notifications.AbstractNotifications):
         self.sent[destination].append(message)
 
 
+class FakeClient(EigenClient):
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def create_project(self, *args, **kwargs):
+        response = ProjectStruct(
+            document_type_id=123,
+            guid=str(uuid.uuid4()),
+            name="test",
+            description="test",
+            created_at=datetime.now(tz=timezone.utc).isoformat(),
+            language="en",
+            use_numerical_confidence_predictions=True,
+        )
+        return response
+
+
 def bootstrap_test_app():
     return bootstrap.bootstrap(
         start_orm=False,
         uow=FakeUnitOfWork(),
         notifications=FakeNotifications(),
         publish=lambda *args: None,
+        client=FakeClient,
     )
 
 
@@ -82,4 +103,40 @@ def test_create_benchmark():
         )
     )
     assert bus.uow.benchmarks.get_by_id(1) is not None
+    assert bus.uow.committed  # type: ignore
+
+
+def test_create_project():
+    secret_pw = SecretStr("test")
+    bus = bootstrap_test_app()
+    bus.handle(
+        commands.CreateBenchmark(
+            channel=commands.CommandChannelEnum.CREATE_BENCHMARK,
+            name="test",
+            benchmark_type="latency_test",
+            target_infra="k8s",
+            target_url="http://localhost:8080",
+            target_eigen_platform_version="0.0.1",
+            username="test",
+            password=secret_pw,
+        )
+    )
+    benchmark = bus.uow.benchmarks.get_by_id(1)
+    assert benchmark is not None
+
+    bus.handle(
+        events.BenchmarkCreated(
+            channel=events.EventChannelEnum.BENCHMARK_CREATED,
+            benchmark_id=1,
+            name="test",
+            benchmark_type="latency_test",
+            target_infra="k8s",
+            target_url="http://localhost:8080",
+            target_eigen_platform_version="0.0.1",
+            username="test",
+            password=secret_pw,
+        )
+    )
+    # this is the project id returned from the fake client
+    assert benchmark.project.eigen_project_id == 123
     assert bus.uow.committed  # type: ignore
