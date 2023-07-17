@@ -96,11 +96,7 @@ class Document:
         return upload_time.total_seconds()
 
 
-class BenchmarkType(abc.ABC):
-    @abc.abstractclassmethod
-    def factory(cls):
-        raise NotImplementedError
-
+class AbstractBenchmarkType(abc.ABC):
     @abc.abstractmethod
     def next_message(
         self, current_message: Type[events.Event] | Type[commands.Command]
@@ -108,7 +104,7 @@ class BenchmarkType(abc.ABC):
         raise NotImplementedError
 
 
-class LatencyBenchmark(BenchmarkType):
+class LatencyBenchmark(AbstractBenchmarkType):
     message_queue: list[Type[events.Event] | Type[commands.Command]] = [
         events.BenchmarkCreated,
         events.ProjectCreated,
@@ -116,10 +112,6 @@ class LatencyBenchmark(BenchmarkType):
         events.DocumentUpdated,
         events.AllDocumentsUploaded,
     ]
-
-    @classmethod
-    def factory(cls):
-        return cls()
 
     def next_message(
         self, current_message: Type[events.Event] | Type[commands.Command]
@@ -144,7 +136,7 @@ def get_next_message(
 ):
     match benchmark_type:
         case BenchmarkTypesEnum.LATENCY:
-            bm = LatencyBenchmark.factory()
+            bm = LatencyBenchmark()
         case _:
             raise NotImplementedError
 
