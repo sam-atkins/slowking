@@ -2,7 +2,7 @@ import logging
 import pathlib
 import time
 from datetime import datetime, timezone
-from typing import Callable
+from typing import Callable, Type
 
 from sqlalchemy.exc import IllegalStateChangeError, InvalidRequestError
 from sqlalchemy.orm.exc import DetachedInstanceError
@@ -113,7 +113,7 @@ def create_project(
 
 def upload_documents(
     event: events.ProjectCreated,
-    client: type[EigenClient],
+    client: Type[EigenClient],
 ):
     logger.info("=== Called upload_documents ===")
     logger.info(f"upload_documents event: {event}")

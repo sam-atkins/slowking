@@ -15,7 +15,7 @@ def bootstrap(
     notifications: AbstractNotifications = None,  # type: ignore
     publish: Callable[[events.Event], None] = redis_event_publisher.publish,
     uow: unit_of_work.AbstractUnitOfWork = unit_of_work.SqlAlchemyUnitOfWork(),
-    client: type[EigenClient] = EigenClient,
+    client: Type[EigenClient] = EigenClient,
 ) -> messagebus.MessageBus:
     if start_orm:
         orm.start_mappers()
