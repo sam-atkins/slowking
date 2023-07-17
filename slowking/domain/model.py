@@ -4,6 +4,10 @@ Benchmarking domain entities
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Type
+
+from slowking.domain import commands, events
+from slowking.domain.exceptions import MessageNotAssignedToBenchmarkError
 
 
 class Benchmark:
@@ -84,3 +88,33 @@ class Document:
             return None
         upload_time = self.upload_time_end - self.upload_time_start
         return upload_time.total_seconds()
+
+
+class BenchmarkType:
+    def __init__(self, name: str):
+        self.name = name
+
+    def __repr__(self):
+        return f"<BenchmarkType {self.name}>"
+
+
+class LatencyBenchmark(BenchmarkType):
+    message_queue: list[Type[events.Event] | Type[commands.Command]] = [
+        events.BenchmarkCreated,
+        events.ProjectCreated,
+        commands.UpdateDocument,
+        events.DocumentUpdated,
+        events.AllDocumentsUploaded,
+    ]
+
+    def get_next_message(
+        self, current_message: Type[events.Event] | Type[commands.Command]
+    ):
+        try:
+            return self.message_queue[self.message_queue.index(current_message) + 1]
+        except IndexError:
+            return None
+        except ValueError:
+            raise MessageNotAssignedToBenchmarkError(
+                f"{current_message} is not in LatencyBenchmark"
+            )
