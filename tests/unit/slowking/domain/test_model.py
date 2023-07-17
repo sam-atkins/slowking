@@ -6,6 +6,46 @@ from slowking.domain import commands, events, model
 from slowking.domain.exceptions import MessageNotAssignedToBenchmarkError
 
 
+def test_validate_benchmark_type():
+    docs = [model.Document(name="doc test", file_path="path/to/file")]
+    project = model.Project(
+        name="test project",
+        document=docs,
+        eigen_project_id=20,
+    )
+    bm = model.Benchmark(
+        name="latency benchmark for release 1.0.0",
+        benchmark_type="latency",
+        eigen_platform_version="v1.0.0",
+        target_infra="kubernetes",
+        target_url="http://localhost:8080",
+        username="test_user",
+        password="test_password",
+        project=project,
+    )
+    assert bm.benchmark_type == model.BenchmarkTypesEnum.LATENCY.value
+
+
+def test_validate_benchmark_type_raises_exception_when_benchmark_type_is_not_valid():
+    docs = [model.Document(name="doc test", file_path="path/to/file")]
+    project = model.Project(
+        name="test project",
+        document=docs,
+        eigen_project_id=20,
+    )
+    with pytest.raises(model.InvalidBenchmarkTypeError):
+        model.Benchmark(
+            name="latency benchmark for release 1.0.0",
+            benchmark_type="notAValidBenchmarkType",
+            eigen_platform_version="v1.0.0",
+            target_infra="kubernetes",
+            target_url="http://localhost:8080",
+            username="test_user",
+            password="test_password",
+            project=project,
+        )
+
+
 def test_document_upload_time_returns_none_when_no_end_time():
     doc = model.Document(
         name="doc.txt",
@@ -54,6 +94,11 @@ def test_latency_benchmark_next_message_unassigned_event():
     lbm = model.LatencyBenchmark()
     with pytest.raises(MessageNotAssignedToBenchmarkError):
         lbm.next_message(FakeEvent)
+
+
+def test_get_benchmark_types():
+    result = model.BenchmarkTypesEnum.get_benchmark_types()
+    assert result == ["latency"]
 
 
 def test_get_next_message():

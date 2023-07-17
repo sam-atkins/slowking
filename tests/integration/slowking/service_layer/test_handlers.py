@@ -94,7 +94,7 @@ def test_create_benchmark():
         commands.CreateBenchmark(
             channel=commands.CommandChannelEnum.CREATE_BENCHMARK,
             name="test",
-            benchmark_type="latency_test",
+            benchmark_type="latency",
             target_infra="k8s",
             target_url="http://localhost:8080",
             target_eigen_platform_version="0.0.1",
@@ -113,7 +113,7 @@ def test_create_project():
         commands.CreateBenchmark(
             channel=commands.CommandChannelEnum.CREATE_BENCHMARK,
             name="test",
-            benchmark_type="latency_test",
+            benchmark_type="latency",
             target_infra="k8s",
             target_url="http://localhost:8080",
             target_eigen_platform_version="0.0.1",
@@ -129,7 +129,7 @@ def test_create_project():
             channel=events.EventChannelEnum.BENCHMARK_CREATED,
             benchmark_id=1,
             name="test",
-            benchmark_type="latency_test",
+            benchmark_type="latency",
             target_infra="k8s",
             target_url="http://localhost:8080",
             target_eigen_platform_version="0.0.1",

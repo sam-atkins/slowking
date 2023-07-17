@@ -6,11 +6,14 @@ from __future__ import annotations
 import abc
 import logging.config
 from datetime import datetime
-from enum import StrEnum
+from enum import Enum
 from typing import Type
 
 from slowking.domain import commands, events
-from slowking.domain.exceptions import MessageNotAssignedToBenchmarkError
+from slowking.domain.exceptions import (
+    InvalidBenchmarkTypeError,
+    MessageNotAssignedToBenchmarkError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +32,7 @@ class Benchmark:
     """
 
     id: int
+    _benchmark_type: str
 
     def __init__(
         self,
@@ -42,7 +46,6 @@ class Benchmark:
         project: Project,
     ):
         self.name = name
-        # NOTE: benchmark_type is a string for now, but it should be a BenchmarkType
         self.benchmark_type = benchmark_type
         self.eigen_platform_version = eigen_platform_version
         self.target_infra = target_infra
@@ -53,6 +56,22 @@ class Benchmark:
 
     def __repr__(self):
         return f"<Benchmark {self.name}>"
+
+    @property
+    def benchmark_type(self):
+        return self._benchmark_type
+
+    @benchmark_type.setter
+    def benchmark_type(self, benchmark_type: str):
+        """
+        Validate the benchmark type
+        """
+        valid_benchmark_types = BenchmarkTypesEnum.get_benchmark_types()
+        if benchmark_type not in valid_benchmark_types:
+            msg = f"Invalid benchmark type: {benchmark_type}. Valid benchmark types are: {valid_benchmark_types}"  # noqa: E501
+            raise InvalidBenchmarkTypeError(msg)
+
+        self._benchmark_type = benchmark_type
 
 
 class Project:
@@ -126,8 +145,12 @@ class LatencyBenchmark(AbstractBenchmarkType):
             )
 
 
-class BenchmarkTypesEnum(StrEnum):
+class BenchmarkTypesEnum(Enum):
     LATENCY = "latency"
+
+    @classmethod
+    def get_benchmark_types(cls) -> list[str]:
+        return [benchmark_type.value for benchmark_type in list(cls)]
 
 
 def get_next_message(

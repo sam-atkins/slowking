@@ -28,7 +28,7 @@ def benchmark():
     )
     benchmark = model.Benchmark(
         name="latency benchmark for release 1.0.0",
-        benchmark_type="latency test",
+        benchmark_type="latency",
         eigen_platform_version="v1.0.0",
         target_infra="kubernetes",
         target_url="http://localhost:8080",
