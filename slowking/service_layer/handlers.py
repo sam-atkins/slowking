@@ -70,11 +70,6 @@ def create_benchmark(
     )
 
 
-def get_artifacts(event: events.BenchmarkCreated):
-    logger.info("=== Called get_artifacts ===")
-    logger.info(f"get_artifacts event: {event}")
-
-
 def create_project(
     event: events.BenchmarkCreated,
     uow: unit_of_work.AbstractUnitOfWork,
