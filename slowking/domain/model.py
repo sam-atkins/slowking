@@ -79,7 +79,7 @@ class Project:
         self,
         name: str,
         document: list[Document] = [],
-        eigen_project_id: int | None = None,
+        eigen_project_id: int = None,  # type: ignore
     ):
         self.name = name
         self.document = document
@@ -118,31 +118,30 @@ class Document:
 class AbstractBenchmarkType(abc.ABC):
     @abc.abstractmethod
     def next_message(
-        self, current_message: Type[events.Event] | Type[commands.Command]
-    ):
+        self, current_message: events.Event | commands.Command
+    ) -> type[events.Event] | type[commands.Command]:
         raise NotImplementedError
 
 
 class LatencyBenchmark(AbstractBenchmarkType):
-    message_queue: list[Type[events.Event] | Type[commands.Command]] = [
-        events.BenchmarkCreated,
-        events.ProjectCreated,
-        commands.UpdateDocument,
-        events.DocumentUpdated,
-        events.AllDocumentsUploaded,
-    ]
+    message_ordering = {
+        events.BenchmarkCreated.__name__: events.ProjectCreated,
+        events.ProjectCreated.__name__: commands.UpdateDocument,
+        commands.UpdateDocument.__name__: events.DocumentUpdated,
+        events.DocumentUpdated.__name__: events.AllDocumentsUploaded,
+        events.AllDocumentsUploaded.__name__: events.BenchmarkCompleted,
+    }  # type: dict[str, Type[events.Event | commands.Command]]
 
     def next_message(
-        self, current_message: Type[events.Event] | Type[commands.Command]
-    ):
-        try:
-            return self.message_queue[self.message_queue.index(current_message) + 1]
-        except IndexError:
-            return None
-        except ValueError:
+        self, current_message: events.Event | commands.Command
+    ) -> type[events.Event] | type[commands.Command]:
+        result = self.message_ordering.get(type(current_message).__name__)
+
+        if not result:
             raise MessageNotAssignedToBenchmarkError(
                 f"{current_message} is not in LatencyBenchmark"
             )
+        return result
 
 
 class BenchmarkTypesEnum(Enum):
@@ -154,11 +153,12 @@ class BenchmarkTypesEnum(Enum):
 
 
 def get_next_message(
-    benchmark_type: BenchmarkTypesEnum,
-    current_message: Type[events.Event] | Type[commands.Command],
-):
+    benchmark_type: str,
+    current_message: events.Event | commands.Command,
+) -> Type[events.Event] | Type[commands.Command]:
+    logger.info(f"Getting next message for benchmark_type: {benchmark_type}")
     match benchmark_type:
-        case BenchmarkTypesEnum.LATENCY:
+        case BenchmarkTypesEnum.LATENCY.value:
             bm = LatencyBenchmark()
         case _:
             raise NotImplementedError
