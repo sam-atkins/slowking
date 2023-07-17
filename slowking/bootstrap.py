@@ -42,7 +42,7 @@ def bootstrap(
             lambda e: handlers.create_project(e, uow, publish, client),
         ],
         events.ProjectCreated: [
-            lambda e: handlers.upload_documents(e, client),
+            lambda e: handlers.upload_documents(e, client, uow),
         ],
         events.DocumentUpdated: [
             lambda e: handlers.check_all_documents_uploaded(e, uow, publish),

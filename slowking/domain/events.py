@@ -20,10 +20,11 @@ class EventChannelEnum(StrEnum):
 
 class Event(BaseModel):
     channel: str
+    benchmark_id: int
 
 
 class BenchmarkCreated(Event):
-    channel: Literal[EventChannelEnum.BENCHMARK_CREATED]
+    channel: str = EventChannelEnum.BENCHMARK_CREATED.value
     benchmark_id: int
     name: str
     benchmark_type: str
@@ -36,7 +37,7 @@ class BenchmarkCreated(Event):
 
 
 class DocumentUpdated(Event):
-    channel: Literal[EventChannelEnum.DOCUMENT_UPDATED]
+    channel: str = EventChannelEnum.DOCUMENT_UPDATED.value
     benchmark_id: int
     eigen_document_id: int
     document_name: str
@@ -44,16 +45,21 @@ class DocumentUpdated(Event):
 
 
 class ProjectCreated(Event):
-    channel: Literal[EventChannelEnum.PROJECT_CREATED]
-    eigen_project_id: int
-    password: SecretStr
-    target_url: str
-    username: str
+    channel: str = EventChannelEnum.PROJECT_CREATED.value
+    # benchmark_id: int
+    # eigen_project_id: int
+    # password: SecretStr
+    # target_url: str
+    # username: str
 
 
 class AllDocumentsUploaded(Event):
     channel: Literal[EventChannelEnum.ALL_DOCUMENTS_UPLOADED]
     benchmark_id: int
+
+
+class BenchmarkCompleted(Event):
+    pass
 
 
 EVENT_MAPPER = {

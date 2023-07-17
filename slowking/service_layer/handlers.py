@@ -70,6 +70,9 @@ def create_benchmark(
     )
 
 
+# TODO needs event.username, password and target_url
+# but could get these via uom bm query i.e. only needs benchmark_id
+# ISSUE: how to assign the channel to the event?
 def create_project(
     event: events.BenchmarkCreated,
     uow: unit_of_work.AbstractUnitOfWork,
@@ -88,27 +91,50 @@ def create_project(
     logger.info(f"=== create_project :: project response === : {project}")
     project_id = project.document_type_id
 
+    # benchmark: model.Benchmark
+    benchmark_id: int
+    benchmark_type: str
+
     with uow:
         benchmark = uow.benchmarks.get_by_id(event.benchmark_id)
         benchmark.project.eigen_project_id = project_id
         logger.info(f"===  benchmark.project === : {benchmark.project}")
         uow.benchmarks.add(benchmark)
+        uow.flush()
+        benchmark_id = benchmark.id
+        benchmark_type = benchmark.benchmark_type
 
     logger.info("=== Create Project completed ===")
-    publish(
-        events.ProjectCreated(
-            channel=events.EventChannelEnum.PROJECT_CREATED,
-            eigen_project_id=project_id,
-            password=event.password,
-            username=event.username,
-            target_url=event.target_url,
-        )
+
+    next_event = model.get_next_message(
+        benchmark_type=benchmark_type, current_message=event
     )
+    if next_event is None:
+        logger.info("=== No next event ===")
+        return
+
+    event_kwargs = {"benchmark_id": benchmark_id}
+    next_event(**event_kwargs)
+    logger.info(f"=== next_event === : {next_event}")
+    publish(next_event)
+
+    # publish(
+    #     events.ProjectCreated(
+    #         # channel=events.EventChannelEnum.PROJECT_CREATED,
+    #         eigen_project_id=project_id,
+    #         # password=event.password,
+    #         # username=event.username,
+    #         # target_url=event.target_url,
+    #     )
+    # )
 
 
+# TODO needs event.username, password and target_url
+# but could get these via uom bm query i.e. only needs benchmark_id
 def upload_documents(
     event: events.ProjectCreated,
     client: Type[EigenClient],
+    uow: unit_of_work.AbstractUnitOfWork,
 ):
     logger.info("=== Called upload_documents ===")
     logger.info(f"upload_documents event: {event}")
@@ -118,12 +144,19 @@ def upload_documents(
     f_list = list(files.__iter__())
     logger.info(f"=== upload_documents :: f_list === : {f_list}")
 
+    benchmark: model.Benchmark
+
+    with uow:
+        benchmark = uow.benchmarks.get_by_id(event.eigen_project_id)
+
     eigen = client(
-        base_url=event.target_url,
-        username=event.username,
-        password=event.password.get_secret_value(),
+        base_url=benchmark.target_url,
+        username=benchmark.username,
+        password=benchmark.password,
     )
-    response = eigen.upload_files(project_id=event.eigen_project_id, files=f_list)
+    response = eigen.upload_files(
+        project_id=benchmark.project.eigen_project_id, files=f_list
+    )
     logger.info(f"=== upload_documents :: response === : {response}")
     logger.info("=== Upload Documents completed ===")
 
@@ -178,6 +211,7 @@ def update_document(
     )
 
 
+# event only needs event.benchmark_id
 def check_all_documents_uploaded(
     event: events.DocumentUpdated,
     uow: unit_of_work.AbstractUnitOfWork,
