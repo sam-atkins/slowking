@@ -3,11 +3,16 @@ Benchmarking domain entities
 """
 from __future__ import annotations
 
+import abc
+import logging.config
 from datetime import datetime
+from enum import StrEnum
 from typing import Type
 
 from slowking.domain import commands, events
 from slowking.domain.exceptions import MessageNotAssignedToBenchmarkError
+
+logger = logging.getLogger(__name__)
 
 
 class Benchmark:
@@ -37,6 +42,7 @@ class Benchmark:
         project: Project,
     ):
         self.name = name
+        # NOTE: benchmark_type is a string for now, but it should be a BenchmarkType
         self.benchmark_type = benchmark_type
         self.eigen_platform_version = eigen_platform_version
         self.target_infra = target_infra
@@ -90,12 +96,16 @@ class Document:
         return upload_time.total_seconds()
 
 
-class BenchmarkType:
-    def __init__(self, name: str):
-        self.name = name
+class BenchmarkType(abc.ABC):
+    @abc.abstractclassmethod
+    def factory(cls):
+        raise NotImplementedError
 
-    def __repr__(self):
-        return f"<BenchmarkType {self.name}>"
+    @abc.abstractmethod
+    def next_message(
+        self, current_message: Type[events.Event] | Type[commands.Command]
+    ):
+        raise NotImplementedError
 
 
 class LatencyBenchmark(BenchmarkType):
@@ -107,7 +117,11 @@ class LatencyBenchmark(BenchmarkType):
         events.AllDocumentsUploaded,
     ]
 
-    def get_next_message(
+    @classmethod
+    def factory(cls):
+        return cls()
+
+    def next_message(
         self, current_message: Type[events.Event] | Type[commands.Command]
     ):
         try:
@@ -118,3 +132,26 @@ class LatencyBenchmark(BenchmarkType):
             raise MessageNotAssignedToBenchmarkError(
                 f"{current_message} is not in LatencyBenchmark"
             )
+
+
+class BenchmarkTypesEnum(StrEnum):
+    LATENCY = "latency"
+
+
+def get_next_message(
+    benchmark_type: BenchmarkTypesEnum,
+    current_message: Type[events.Event] | Type[commands.Command],
+):
+    match benchmark_type:
+        case BenchmarkTypesEnum.LATENCY:
+            bm = LatencyBenchmark.factory()
+        case _:
+            raise NotImplementedError
+
+    try:
+        message = bm.next_message(current_message)
+    except MessageNotAssignedToBenchmarkError as e:
+        logger.error(e)
+        raise e
+
+    return message
