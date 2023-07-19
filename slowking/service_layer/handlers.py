@@ -10,7 +10,7 @@ from sqlalchemy.orm.exc import DetachedInstanceError
 from slowking.adapters.http import EigenClient
 from slowking.adapters.report import LatencyReport
 from slowking.config import settings
-from slowking.domain import commands, events, model, benchmarks
+from slowking.domain import benchmarks, commands, events, model
 from slowking.service_layer import unit_of_work
 
 logger = logging.getLogger(__name__)
@@ -49,8 +49,6 @@ def create_benchmark(
         uow.benchmarks.add(bm)
         uow.flush()
         benchmark = uow.benchmarks.get_by_name(name)
-        logger.info(f"=== benchmark === : {benchmark}")
-        # benchmark_id = benchmark.id
         logger.info(f"=== create_benchmark :: benchmark.id === : {benchmark.id}")
 
         next_event = benchmarks.get_next_event(

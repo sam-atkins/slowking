@@ -24,6 +24,7 @@ def test_latency_benchmark_next_event_is_noop_event():
     event = events.ProjectCreated(benchmark_id=benchmark_id)
     lbm = benchmarks.LatencyBenchmark()
     result = lbm.next_event(current_message=event, benchmark_id=benchmark_id)
+    # NoOp event returned as None by next_event method
     assert not result
 
 
