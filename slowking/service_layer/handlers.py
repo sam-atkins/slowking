@@ -10,7 +10,7 @@ from sqlalchemy.orm.exc import DetachedInstanceError
 from slowking.adapters.http import EigenClient
 from slowking.adapters.report import LatencyReport
 from slowking.config import settings
-from slowking.domain import commands, events, model
+from slowking.domain import commands, events, model, benchmarks
 from slowking.service_layer import unit_of_work
 
 logger = logging.getLogger(__name__)
@@ -53,7 +53,7 @@ def create_benchmark(
         # benchmark_id = benchmark.id
         logger.info(f"=== create_benchmark :: benchmark.id === : {benchmark.id}")
 
-        next_event = model.get_next_event(
+        next_event = benchmarks.get_next_event(
             benchmark_id=benchmark.id,
             benchmark_type=benchmark.benchmark_type,
             current_message=cmd,
@@ -94,7 +94,7 @@ def create_project(
         uow.flush()
         logger.info("=== Create Project completed ===")
 
-        next_event = model.get_next_event(
+        next_event = benchmarks.get_next_event(
             benchmark_id=benchmark.id,
             benchmark_type=benchmark.benchmark_type,
             current_message=event,
@@ -167,7 +167,7 @@ def update_document(
 
                 uow.benchmarks.add(bm)
 
-                next_event = model.get_next_event(
+                next_event = benchmarks.get_next_event(
                     benchmark_id=bm.id,
                     benchmark_type=bm.benchmark_type,
                     current_message=cmd,
@@ -210,7 +210,7 @@ def check_all_documents_uploaded(
         if len(docs_with_upload_time) == len(documents):
             logger.info(f"=== docs_with_upload_time === : {docs_with_upload_time}")
 
-            next_event = model.get_next_event(
+            next_event = benchmarks.get_next_event(
                 benchmark_id=bm.id,
                 benchmark_type=bm.benchmark_type,
                 current_message=event,

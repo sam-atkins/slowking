@@ -3,16 +3,12 @@ Benchmarking domain entities
 """
 from __future__ import annotations
 
-import abc
 import logging.config
 from datetime import datetime
-from enum import Enum
-from typing import Type
 
-from slowking.domain import commands, events
+from slowking.domain.benchmarks import BenchmarkTypesEnum
 from slowking.domain.exceptions import (
     InvalidBenchmarkTypeError,
-    MessageNotAssignedToBenchmarkError,
 )
 
 logger = logging.getLogger(__name__)
@@ -113,69 +109,3 @@ class Document:
             return None
         upload_time = self.upload_time_end - self.upload_time_start
         return upload_time.total_seconds()
-
-
-class AbstractBenchmarkType(abc.ABC):
-    @abc.abstractmethod
-    def next_event(
-        self, current_message: events.Event | commands.Command, benchmark_id: int
-    ) -> events.Event | None:
-        raise NotImplementedError
-
-
-class BenchmarkTypesEnum(Enum):
-    LATENCY = "latency"
-
-    @classmethod
-    def get_benchmark_types(cls) -> list[str]:
-        return [benchmark_type.value for benchmark_type in list(cls)]
-
-
-class LatencyBenchmark(AbstractBenchmarkType):
-    message_ordering: dict[str, Type[events.Event]] = {
-        commands.CreateBenchmark.__name__: events.BenchmarkCreated,
-        events.BenchmarkCreated.__name__: events.ProjectCreated,
-        events.ProjectCreated.__name__: events.NoOp,
-        commands.UpdateDocument.__name__: events.DocumentUpdated,
-        events.DocumentUpdated.__name__: events.AllDocumentsUploaded,
-        events.AllDocumentsUploaded.__name__: events.BenchmarkCompleted,
-    }
-
-    def next_event(
-        self, current_message: events.Event | commands.Command, benchmark_id: int
-    ) -> events.Event | None:
-        result = self.message_ordering.get(type(current_message).__name__)
-
-        if not result:
-            raise MessageNotAssignedToBenchmarkError(
-                f"{current_message} is not in LatencyBenchmark"
-            )
-        event = getattr(events, result.__name__)
-
-        if event == events.NoOp:
-            logger.info("NoOp message returned")
-            return None
-
-        event = event(benchmark_id=benchmark_id)
-        return event
-
-
-def get_next_event(
-    benchmark_id: int,
-    benchmark_type: str,
-    current_message: events.Event | commands.Command,
-) -> events.Event | None:
-    logger.info(f"Getting next message for benchmark_type: {benchmark_type}")
-    match benchmark_type:
-        case BenchmarkTypesEnum.LATENCY.value:
-            bm = LatencyBenchmark()
-        case _:
-            raise NotImplementedError
-
-    try:
-        event = bm.next_event(current_message, benchmark_id)
-    except MessageNotAssignedToBenchmarkError as e:
-        logger.error(e)
-        raise e
-
-    return event
