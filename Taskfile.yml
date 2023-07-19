@@ -133,7 +133,7 @@ tasks:
   pre:
     desc: "Pre runs various pre-CI tasks to prepare a diff before committing"
     cmds:
-      - task: fmt-check
+      - task: fmt
       - task: test
       - task: mypy
 
