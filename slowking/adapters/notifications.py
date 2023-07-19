@@ -30,7 +30,8 @@ class EmailNotifications(AbstractNotifications):
 
     def send(self, benchmark: model.Benchmark, message: str) -> None:
         subject = f"Benchmark Report: {benchmark.name}"
-        msg = f"Subject: {subject}\n{message}"
+        body = f"Report generated: {message}"
+        msg = f"Subject: {subject}\n{body}"
 
         # Hard coded as an example, could be taken from the benchmark aggregate
         # the CreateBenchmark command could have an email field

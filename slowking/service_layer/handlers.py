@@ -230,6 +230,6 @@ def create_report(
     with uow:
         bm = uow.benchmarks.get_by_id(event.benchmark_id)
         logger.info(f"=== create_report bm === : {bm}")
-        LatencyReport().create(bm)
-        notifications.send(bm, "Benchmark report generated")
+        report = LatencyReport().create(bm)
+        notifications.send(benchmark=bm, message=report)
         logger.info("=== Create Report Notification sent  ===")

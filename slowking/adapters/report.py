@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 class AbstractReporter:
     @abc.abstractmethod
-    def create(self, benchmark: model.Benchmark):
+    def create(self, benchmark: model.Benchmark) -> str:
         raise NotImplementedError
 
 
