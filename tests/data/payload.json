@@ -1,6 +1,6 @@
 {
     "name": "Benchmark Latency for release 5.11.0-rc1",
-    "benchmark_type": "benchmark__latency",
+    "benchmark_type": "latency",
     "target_infra": "docker__local",
     "target_url": "eigenapi:8283",
     "target_eigen_platform_version": "5.11.0-rc1",

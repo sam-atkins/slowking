@@ -2,7 +2,7 @@ import logging
 import pathlib
 import time
 from datetime import datetime, timezone
-from typing import Callable
+from typing import Callable, Type
 
 from sqlalchemy.exc import IllegalStateChangeError, InvalidRequestError
 from sqlalchemy.orm.exc import DetachedInstanceError
@@ -10,7 +10,7 @@ from sqlalchemy.orm.exc import DetachedInstanceError
 from slowking.adapters.http import EigenClient
 from slowking.adapters.report import LatencyReport
 from slowking.config import settings
-from slowking.domain import commands, events, model
+from slowking.domain import benchmarks, commands, events, model
 from slowking.service_layer import unit_of_work
 
 logger = logging.getLogger(__name__)
@@ -24,8 +24,6 @@ def create_benchmark(
     logger.info("=== Called create_benchmark handler ===")
 
     name = f"{datetime.now(timezone.utc).strftime('%Y-%m-%d, %H:%M:%S')} - {cmd.name}"
-    # NOTE placeholder for benchmark.id to avoid DetachedInstanceError Session issues
-    benchmark_id: int
 
     with uow:
         documents = []
@@ -45,34 +43,24 @@ def create_benchmark(
             target_infra=cmd.target_infra,
             target_url=cmd.target_url,
             username=cmd.username,
-            password=cmd.password.get_secret_value(),
+            password=cmd.password,
             project=project,
         )
         uow.benchmarks.add(bm)
         uow.flush()
         benchmark = uow.benchmarks.get_by_name(name)
-        logger.info(f"=== benchmark === : {benchmark}")
-        benchmark_id = benchmark.id
         logger.info(f"=== create_benchmark :: benchmark.id === : {benchmark.id}")
 
-    publish(
-        events.BenchmarkCreated(
-            channel=events.EventChannelEnum.BENCHMARK_CREATED,
-            name=cmd.name,
-            benchmark_id=benchmark_id,
-            benchmark_type=cmd.benchmark_type,
-            target_infra=cmd.target_infra,
-            target_url=cmd.target_url,
-            target_eigen_platform_version=cmd.target_eigen_platform_version,
-            username=cmd.username,
-            password=cmd.password,
+        next_event = benchmarks.get_next_event(
+            benchmark_id=benchmark.id,
+            benchmark_type=benchmark.benchmark_type,
+            current_message=cmd,
         )
-    )
+        if next_event is None:
+            logger.info("=== No next event ===")
+            return
 
-
-def get_artifacts(event: events.BenchmarkCreated):
-    logger.info("=== Called get_artifacts ===")
-    logger.info(f"get_artifacts event: {event}")
+        publish(next_event)
 
 
 def create_project(
@@ -84,36 +72,43 @@ def create_project(
     logger.info("=== Called create_project ===")
     logger.info(f"create_project event: {event}")
 
-    eigen = client(
-        base_url=event.target_url,
-        username=event.username,
-        password=event.password.get_secret_value(),
-    )
-    project = eigen.create_project(name=event.name, description=event.benchmark_type)
-    logger.info(f"=== create_project :: project response === : {project}")
-    project_id = project.document_type_id
-
     with uow:
         benchmark = uow.benchmarks.get_by_id(event.benchmark_id)
+
+        eigen = client(
+            base_url=benchmark.target_url,
+            username=benchmark.username,
+            password=benchmark.password,
+        )
+        project = eigen.create_project(
+            name=benchmark.name, description=benchmark.benchmark_type
+        )
+        logger.info(f"=== create_project :: project response === : {project}")
+        project_id = project.document_type_id
+
         benchmark.project.eigen_project_id = project_id
         logger.info(f"===  benchmark.project === : {benchmark.project}")
         uow.benchmarks.add(benchmark)
+        uow.flush()
+        logger.info("=== Create Project completed ===")
 
-    logger.info("=== Create Project completed ===")
-    publish(
-        events.ProjectCreated(
-            channel=events.EventChannelEnum.PROJECT_CREATED,
-            eigen_project_id=project_id,
-            password=event.password,
-            username=event.username,
-            target_url=event.target_url,
+        next_event = benchmarks.get_next_event(
+            benchmark_id=benchmark.id,
+            benchmark_type=benchmark.benchmark_type,
+            current_message=event,
         )
-    )
+        if next_event is None:
+            logger.info("=== No next event ===")
+            return
+
+        logger.info(f"=== next_event === : {next_event}")
+        publish(next_event)
 
 
 def upload_documents(
     event: events.ProjectCreated,
-    client: type[EigenClient],
+    client: Type[EigenClient],
+    uow: unit_of_work.AbstractUnitOfWork,
 ):
     logger.info("=== Called upload_documents ===")
     logger.info(f"upload_documents event: {event}")
@@ -123,14 +118,19 @@ def upload_documents(
     f_list = list(files.__iter__())
     logger.info(f"=== upload_documents :: f_list === : {f_list}")
 
-    eigen = client(
-        base_url=event.target_url,
-        username=event.username,
-        password=event.password.get_secret_value(),
-    )
-    response = eigen.upload_files(project_id=event.eigen_project_id, files=f_list)
-    logger.info(f"=== upload_documents :: response === : {response}")
-    logger.info("=== Upload Documents completed ===")
+    with uow:
+        benchmark = uow.benchmarks.get_by_id(event.benchmark_id)
+
+        eigen = client(
+            base_url=benchmark.target_url,
+            username=benchmark.username,
+            password=benchmark.password,
+        )
+        response = eigen.upload_files(
+            project_id=benchmark.project.eigen_project_id, files=f_list
+        )
+        logger.info(f"=== upload_documents :: response === : {response}")
+        logger.info("=== Upload Documents completed ===")
 
 
 def update_document(
@@ -140,7 +140,6 @@ def update_document(
 ):
     logger.info("=== Called update_document ===")
     logger.info(f"update_document cmd: {cmd}")
-    benchmark_id: int
 
     for _ in range(0, settings.DB_MAX_RETRIES):
         try:
@@ -149,7 +148,6 @@ def update_document(
                     host=cmd.benchmark_host_name, project_id=int(cmd.eigen_project_id)
                 )
                 logger.info(f"=== bm === : {bm}")
-                benchmark_id = bm.id
 
                 documents = bm.project.document
                 logger.info(f"=== documents === : {documents}")
@@ -166,21 +164,23 @@ def update_document(
                         break
 
                 uow.benchmarks.add(bm)
+
+                next_event = benchmarks.get_next_event(
+                    benchmark_id=bm.id,
+                    benchmark_type=bm.benchmark_type,
+                    current_message=cmd,
+                )
+                if next_event is None:
+                    logger.info("=== No next event ===")
+                    return
+
+                publish(next_event)
+
         except (DetachedInstanceError, IllegalStateChangeError, InvalidRequestError):
             logger.info(
                 f"===DB exception when updating doc {cmd.document_name}, retrying."
             )
             time.sleep(settings.DB_RETRY_INTERVAL)
-
-    publish(
-        events.DocumentUpdated(
-            channel=events.EventChannelEnum.DOCUMENT_UPDATED,
-            benchmark_id=benchmark_id,
-            eigen_document_id=int(cmd.eigen_document_id),
-            document_name=cmd.document_name,
-            eigen_project_id=int(cmd.eigen_project_id),
-        )
-    )
 
 
 def check_all_documents_uploaded(
@@ -207,12 +207,17 @@ def check_all_documents_uploaded(
 
         if len(docs_with_upload_time) == len(documents):
             logger.info(f"=== docs_with_upload_time === : {docs_with_upload_time}")
-            publish(
-                events.AllDocumentsUploaded(
-                    channel=events.EventChannelEnum.ALL_DOCUMENTS_UPLOADED,
-                    benchmark_id=event.benchmark_id,
-                )
+
+            next_event = benchmarks.get_next_event(
+                benchmark_id=bm.id,
+                benchmark_type=bm.benchmark_type,
+                current_message=event,
             )
+            if next_event is None:
+                logger.info("=== No next event ===")
+                return
+
+            publish(next_event)
 
 
 def create_report(

@@ -2,7 +2,6 @@ import uuid
 from collections import defaultdict
 from datetime import datetime, timezone
 
-from pydantic import SecretStr
 
 from slowking import bootstrap
 from slowking.adapters import notifications, repository
@@ -88,18 +87,17 @@ def bootstrap_test_app():
 
 
 def test_create_benchmark():
-    secret_pw = SecretStr("test")
     bus = bootstrap_test_app()
     bus.handle(
         commands.CreateBenchmark(
             channel=commands.CommandChannelEnum.CREATE_BENCHMARK,
             name="test",
-            benchmark_type="latency_test",
+            benchmark_type="latency",
             target_infra="k8s",
             target_url="http://localhost:8080",
             target_eigen_platform_version="0.0.1",
             username="test",
-            password=secret_pw,
+            password="secret_pw",
         )
     )
     assert bus.uow.benchmarks.get_by_id(1) is not None
@@ -107,36 +105,23 @@ def test_create_benchmark():
 
 
 def test_create_project():
-    secret_pw = SecretStr("test")
     bus = bootstrap_test_app()
     bus.handle(
         commands.CreateBenchmark(
             channel=commands.CommandChannelEnum.CREATE_BENCHMARK,
             name="test",
-            benchmark_type="latency_test",
+            benchmark_type="latency",
             target_infra="k8s",
             target_url="http://localhost:8080",
             target_eigen_platform_version="0.0.1",
             username="test",
-            password=secret_pw,
+            password="secret_pw",
         )
     )
     benchmark = bus.uow.benchmarks.get_by_id(1)
     assert benchmark is not None
 
-    bus.handle(
-        events.BenchmarkCreated(
-            channel=events.EventChannelEnum.BENCHMARK_CREATED,
-            benchmark_id=1,
-            name="test",
-            benchmark_type="latency_test",
-            target_infra="k8s",
-            target_url="http://localhost:8080",
-            target_eigen_platform_version="0.0.1",
-            username="test",
-            password=secret_pw,
-        )
-    )
+    bus.handle(events.BenchmarkCreated(benchmark_id=1))
     # this is the project id returned from the fake client
     assert benchmark.project.eigen_project_id == 123
     assert bus.uow.committed  # type: ignore

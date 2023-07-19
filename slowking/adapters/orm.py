@@ -19,6 +19,7 @@ benchmark = sa.Table(
     sa.Column("id", sa.Integer, primary_key=True, autoincrement=True),
     sa.Column("name", sa.String(255), nullable=False),
     sa.Column("benchmark_type", sa.String(255)),
+    sa.Column("_benchmark_type", sa.String(255)),
     sa.Column("eigen_platform_version", sa.String(255)),
     sa.Column("target_infra", sa.String(255)),
     sa.Column("target_url", sa.String(255)),

@@ -92,7 +92,7 @@ An example Payload (WIP) would be:
 > Events capture facts about things that happened in the past.
 
 - BenchmarkCreated
-  - handlers: get_artifacts, create_project
+  - handlers: create_project
   - omit events: created_project
 - created_project
   - handlers: upload_documents

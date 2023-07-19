@@ -3,7 +3,15 @@ Benchmarking domain entities
 """
 from __future__ import annotations
 
+import logging.config
 from datetime import datetime
+
+from slowking.domain.benchmarks import BenchmarkTypesEnum
+from slowking.domain.exceptions import (
+    InvalidBenchmarkTypeError,
+)
+
+logger = logging.getLogger(__name__)
 
 
 class Benchmark:
@@ -20,6 +28,7 @@ class Benchmark:
     """
 
     id: int
+    _benchmark_type: str
 
     def __init__(
         self,
@@ -44,13 +53,29 @@ class Benchmark:
     def __repr__(self):
         return f"<Benchmark {self.name}>"
 
+    @property
+    def benchmark_type(self):
+        return self._benchmark_type
+
+    @benchmark_type.setter
+    def benchmark_type(self, benchmark_type: str):
+        """
+        Validate the benchmark type
+        """
+        valid_benchmark_types = BenchmarkTypesEnum.get_benchmark_types()
+        if benchmark_type not in valid_benchmark_types:
+            msg = f"Invalid benchmark type: {benchmark_type}. Valid benchmark types are: {valid_benchmark_types}"  # noqa: E501
+            raise InvalidBenchmarkTypeError(msg)
+
+        self._benchmark_type = benchmark_type
+
 
 class Project:
     def __init__(
         self,
         name: str,
         document: list[Document] = [],
-        eigen_project_id: int | None = None,
+        eigen_project_id: int = None,  # type: ignore
     ):
         self.name = name
         self.document = document

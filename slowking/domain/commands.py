@@ -1,10 +1,9 @@
 """
 Domain Commands
 """
+from dataclasses import dataclass
 from enum import StrEnum
 from typing import Literal, Self, Type
-
-from pydantic import BaseModel, SecretStr
 
 
 class CommandChannelEnum(StrEnum):
@@ -16,10 +15,12 @@ class CommandChannelEnum(StrEnum):
         return [channel.value for channel in list(cls)]
 
 
-class Command(BaseModel):
+@dataclass
+class Command:
     pass
 
 
+@dataclass
 class CreateBenchmark(Command):
     channel: Literal[CommandChannelEnum.CREATE_BENCHMARK]
     name: str
@@ -28,9 +29,10 @@ class CreateBenchmark(Command):
     target_url: str
     target_eigen_platform_version: str
     username: str
-    password: SecretStr
+    password: str
 
 
+@dataclass
 class UpdateDocument(Command):
     channel: Literal[CommandChannelEnum.UPDATE_DOCUMENT]
     document_name: str

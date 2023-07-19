@@ -1,10 +1,10 @@
 """
 Domain Events
 """
+import json
+from dataclasses import asdict, dataclass
 from enum import StrEnum
-from typing import Literal, Self, Type
-
-from pydantic import BaseModel, SecretStr
+from typing import Self, Type
 
 
 class EventChannelEnum(StrEnum):
@@ -18,47 +18,60 @@ class EventChannelEnum(StrEnum):
         return [channel.value for channel in list(cls)]
 
 
-class Event(BaseModel):
-    channel: str
+@dataclass
+class Event:
+    benchmark_id: int
+    channel: str = ""
+
+    def to_dict(self):
+        return asdict(self)
+
+    def to_json(self):
+        return json.dumps(self.to_dict())
 
 
+@dataclass
 class BenchmarkCreated(Event):
-    channel: Literal[EventChannelEnum.BENCHMARK_CREATED]
     benchmark_id: int
-    name: str
-    benchmark_type: str
-    target_infra: str
-    target_url: str
-    target_eigen_platform_version: str
-    username: str
-    # Use .get_secret_value() method to see the secret's content
-    password: SecretStr
+    channel: str = EventChannelEnum.BENCHMARK_CREATED.value
 
 
+@dataclass
 class DocumentUpdated(Event):
-    channel: Literal[EventChannelEnum.DOCUMENT_UPDATED]
     benchmark_id: int
-    eigen_document_id: int
-    document_name: str
-    eigen_project_id: int
+    channel: str = EventChannelEnum.DOCUMENT_UPDATED.value
 
 
+@dataclass
 class ProjectCreated(Event):
-    channel: Literal[EventChannelEnum.PROJECT_CREATED]
-    eigen_project_id: int
-    password: SecretStr
-    target_url: str
-    username: str
-
-
-class AllDocumentsUploaded(Event):
-    channel: Literal[EventChannelEnum.ALL_DOCUMENTS_UPLOADED]
     benchmark_id: int
+    channel: str = EventChannelEnum.PROJECT_CREATED.value
 
 
-EVENT_MAPPER = {
+@dataclass
+class AllDocumentsUploaded(Event):
+    benchmark_id: int
+    channel: str = EventChannelEnum.ALL_DOCUMENTS_UPLOADED.value
+
+
+@dataclass
+class BenchmarkCompleted(Event):
+    pass
+
+
+@dataclass
+class NoOp(Event):
+    """
+    Used when no more events are fired e.g. system is waiting for an external
+    command
+    """
+
+    pass
+
+
+EVENT_MAPPER: dict[str, Type[Event]] = {
     EventChannelEnum.ALL_DOCUMENTS_UPLOADED.value: AllDocumentsUploaded,
     EventChannelEnum.BENCHMARK_CREATED.value: BenchmarkCreated,
     EventChannelEnum.PROJECT_CREATED.value: ProjectCreated,
     EventChannelEnum.DOCUMENT_UPDATED.value: DocumentUpdated,
-}  # type: dict[str, Type[Event]]
+}
