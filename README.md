@@ -4,7 +4,7 @@ This is a proof of concept benchmarking app/tool with an event-driven architectu
 
 - [slowking](#slowking)
   - [Design Principles](#design-principles)
-  - [Setup](#setup)
+  - [Local Dev](#local-dev)
   - [Database Migrations](#database-migrations)
   - [Design Notes](#design-notes)
     - [Commands](#commands)
@@ -28,17 +28,23 @@ This is a proof of concept benchmarking app/tool with an event-driven architectu
 - No infrastructure provisioning. It relies on a benchmarkable Platform to already be running
 - Benchmark reports will be in CSV format
 
-## Setup
+## Local Dev
 
 ```shell
 task build && task up
 ```
+
+Following are available:
+
+- Swagger Docs for the Slowking API: http://0.0.0.0:8091/docs
+- MailHog UI: http://0.0.0.0:18025/
 
 There are also various tasks in the Taskfile:
 
 ```shell
 task --list
 ```
+
 
 ## Database Migrations
 

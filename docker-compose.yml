@@ -36,6 +36,7 @@ services:
     depends_on:
       - slowking-postgres
       - slowking-redis
+      - mailhog
     volumes:
       - ./slowking:/home/app/slowking
       - ./reports:/home/app/reports
@@ -80,6 +81,13 @@ services:
       - "8283:8283"
     volumes:
       - ./eigenapi:/home/app/src
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: slowking-mailhog
+    ports:
+      - "11025:1025"
+      - "18025:8025"
 
 # networks:
 #   network_eigen_dev:

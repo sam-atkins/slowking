@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     API_BENCHMARK_NAMESPACE_V1_STR: str = f"{API_V1_STR}/benchmarks"
     DB_MAX_RETRIES: int = 10
     DB_RETRY_INTERVAL: int = 1
+    EMAIL_HOST: str = "slowking-mailhog"
+    EMAIL_PORT: int = 1025
+    EMAIL_HTTP_PORT: int = 8025
     OUTPUT_DIR: str = "/home/app/reports/"
     OUTPUT_FILENAME: str = (
         f"report_{datetime.now(timezone.utc).strftime('%Y_%m_%d__%H_%M_%S')}.csv"
