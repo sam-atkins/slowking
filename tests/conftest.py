@@ -1,9 +1,16 @@
 import pytest
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import clear_mappers, sessionmaker
 
-from slowking.adapters.orm import metadata
+from slowking.adapters.orm import metadata, start_mappers
 from slowking.domain import model
+
+
+@pytest.fixture
+def mappers():
+    start_mappers()
+    yield
+    clear_mappers()
 
 
 @pytest.fixture

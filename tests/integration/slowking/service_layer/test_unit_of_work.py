@@ -4,6 +4,8 @@ from sqlalchemy import text
 from slowking.domain import model
 from slowking.service_layer import unit_of_work
 
+pytestmark = pytest.mark.usefixtures("mappers")
+
 
 def get_benchmark_by_name(session, name):
     benchmark = session.query(model.Benchmark).filter_by(name=name).first()

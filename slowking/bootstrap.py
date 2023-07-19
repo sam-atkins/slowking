@@ -3,7 +3,10 @@ from typing import Callable, Type
 
 from slowking.adapters import orm, redis_event_publisher
 from slowking.adapters.http import EigenClient
-from slowking.adapters.notifications import AbstractNotifications, EmailNotifications
+from slowking.adapters.notifications import (
+    AbstractNotifications,
+    EmailNotifications,
+)
 from slowking.domain import commands, events
 from slowking.service_layer import handlers, messagebus, unit_of_work
 
