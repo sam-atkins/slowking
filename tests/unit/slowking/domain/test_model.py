@@ -1,9 +1,8 @@
 from datetime import datetime, timedelta, timezone
 
 import pytest
-from pydantic import SecretStr
 
-from slowking.domain import commands, events, model
+from slowking.domain import events, model
 from slowking.domain.exceptions import MessageNotAssignedToBenchmarkError
 
 
@@ -79,12 +78,30 @@ def test_document_upload_time_returns_upload_time():
     assert doc.upload_time == 10.0
 
 
-# TODO implement test
-def test_latency_benchmark_next_message():
-    pass
+def test_latency_benchmark_next_event():
+    benchmark_id = 1
+    event = events.BenchmarkCreated(
+        benchmark_id=benchmark_id,
+    )
+    lbm = model.LatencyBenchmark()
+    result = lbm.next_event(current_message=event, benchmark_id=benchmark_id)
+    assert result == events.ProjectCreated(benchmark_id=benchmark_id)
 
 
-def test_latency_benchmark_next_message_unassigned_event():
+def test_latency_benchmark_next_event_is_noop_event():
+    """
+    In Latency benchmarks, the handler processes the ProjectCreated event by uploading
+    documents. The next event is a NoOp event. This is because we wait for the
+    instrumented app to send document upload events (start and end upload times).
+    """
+    benchmark_id = 2
+    event = events.ProjectCreated(benchmark_id=benchmark_id)
+    lbm = model.LatencyBenchmark()
+    result = lbm.next_event(current_message=event, benchmark_id=benchmark_id)
+    assert not result
+
+
+def test_latency_benchmark_next_event_unassigned_event():
     class FakeEvent(events.Event):
         channel = "fake_event"
 
@@ -92,7 +109,7 @@ def test_latency_benchmark_next_message_unassigned_event():
 
     lbm = model.LatencyBenchmark()
     with pytest.raises(MessageNotAssignedToBenchmarkError):
-        lbm.next_message(fake_event)
+        lbm.next_event(current_message=fake_event, benchmark_id=1)
 
 
 def test_get_benchmark_types():
@@ -100,39 +117,39 @@ def test_get_benchmark_types():
     assert result == ["latency"]
 
 
-def test_get_next_message_is_project_created():
-    secret_pw = SecretStr("test_password")
+def test_get_next_event_is_project_created():
     event = events.BenchmarkCreated(
         benchmark_id=1,
-        name="latency benchmark",
-        benchmark_type="latency",
-        target_infra="kubernetes",
-        target_url="http://localhost:8080",
-        target_eigen_platform_version="1.0.0",
-        username="test_user",
-        password=secret_pw,
     )
-    result = model.get_next_message("latency", event)
-    assert result == events.ProjectCreated
+    result = model.get_next_event(
+        benchmark_id=1, benchmark_type="latency", current_message=event
+    )
+    assert result == events.ProjectCreated(benchmark_id=1)
 
 
-def test_get_next_message_is_update_document():
-    event = events.ProjectCreated(benchmark_id=1)
-    result = model.get_next_message("latency", event)
-    assert result == commands.UpdateDocument
-
-
-def test_get_next_message_unknown_benchmark_type():
+def test_get_next_event_unknown_benchmark_type():
     with pytest.raises(NotImplementedError):
         # ignoring type to test NotImplementedError
-        model.get_next_message("new_benchmark", "fake_event")  # type: ignore
+        model.get_next_event(
+            benchmark_id=1, benchmark_type="new_benchmark", current_message="fake_event"  # type: ignore # noqa E501
+        )
 
 
-def test_get_next_message_unassigned_event():
+def test_get_next_event_unassigned_event():
     class FakeEvent(events.Event):
         channel = "fake_event"
 
     fake_event = FakeEvent(channel="fake_channel", benchmark_id=1)
 
     with pytest.raises(MessageNotAssignedToBenchmarkError):
-        model.get_next_message("latency", fake_event)
+        model.get_next_event(
+            benchmark_id=1, benchmark_type="latency", current_message=fake_event
+        )
+
+
+def test_get_next_event_noop_event():
+    event = events.ProjectCreated(benchmark_id=1)
+    result = model.get_next_event(
+        benchmark_id=1, benchmark_type="latency", current_message=event
+    )
+    assert result is None

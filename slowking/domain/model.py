@@ -117,31 +117,10 @@ class Document:
 
 class AbstractBenchmarkType(abc.ABC):
     @abc.abstractmethod
-    def next_message(
-        self, current_message: events.Event | commands.Command
-    ) -> type[events.Event] | type[commands.Command]:
+    def next_event(
+        self, current_message: events.Event | commands.Command, benchmark_id: int
+    ) -> events.Event | None:
         raise NotImplementedError
-
-
-class LatencyBenchmark(AbstractBenchmarkType):
-    message_ordering = {
-        events.BenchmarkCreated.__name__: events.ProjectCreated,
-        events.ProjectCreated.__name__: commands.UpdateDocument,
-        commands.UpdateDocument.__name__: events.DocumentUpdated,
-        events.DocumentUpdated.__name__: events.AllDocumentsUploaded,
-        events.AllDocumentsUploaded.__name__: events.BenchmarkCompleted,
-    }  # type: dict[str, Type[events.Event | commands.Command]]
-
-    def next_message(
-        self, current_message: events.Event | commands.Command
-    ) -> type[events.Event] | type[commands.Command]:
-        result = self.message_ordering.get(type(current_message).__name__)
-
-        if not result:
-            raise MessageNotAssignedToBenchmarkError(
-                f"{current_message} is not in LatencyBenchmark"
-            )
-        return result
 
 
 class BenchmarkTypesEnum(Enum):
@@ -152,10 +131,40 @@ class BenchmarkTypesEnum(Enum):
         return [benchmark_type.value for benchmark_type in list(cls)]
 
 
-def get_next_message(
+class LatencyBenchmark(AbstractBenchmarkType):
+    message_ordering: dict[str, Type[events.Event]] = {
+        commands.CreateBenchmark.__name__: events.BenchmarkCreated,
+        events.BenchmarkCreated.__name__: events.ProjectCreated,
+        events.ProjectCreated.__name__: events.NoOp,
+        commands.UpdateDocument.__name__: events.DocumentUpdated,
+        events.DocumentUpdated.__name__: events.AllDocumentsUploaded,
+        events.AllDocumentsUploaded.__name__: events.BenchmarkCompleted,
+    }
+
+    def next_event(
+        self, current_message: events.Event | commands.Command, benchmark_id: int
+    ) -> events.Event | None:
+        result = self.message_ordering.get(type(current_message).__name__)
+
+        if not result:
+            raise MessageNotAssignedToBenchmarkError(
+                f"{current_message} is not in LatencyBenchmark"
+            )
+        event = getattr(events, result.__name__)
+
+        if event == events.NoOp:
+            logger.info("NoOp message returned")
+            return None
+
+        event = event(benchmark_id=benchmark_id)
+        return event
+
+
+def get_next_event(
+    benchmark_id: int,
     benchmark_type: str,
     current_message: events.Event | commands.Command,
-) -> Type[events.Event] | Type[commands.Command]:
+) -> events.Event | None:
     logger.info(f"Getting next message for benchmark_type: {benchmark_type}")
     match benchmark_type:
         case BenchmarkTypesEnum.LATENCY.value:
@@ -164,9 +173,9 @@ def get_next_message(
             raise NotImplementedError
 
     try:
-        message = bm.next_message(current_message)
+        event = bm.next_event(current_message, benchmark_id)
     except MessageNotAssignedToBenchmarkError as e:
         logger.error(e)
         raise e
 
-    return message
+    return event
