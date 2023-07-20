@@ -209,16 +209,25 @@ def check_all_documents_uploaded(
         if len(docs_with_upload_time) == len(documents):
             logger.info(f"=== docs_with_upload_time === : {docs_with_upload_time}")
 
-            next_event = benchmarks.get_next_event(
-                benchmark_id=bm.id,
-                benchmark_type=bm.benchmark_type,
-                current_message=event,
-            )
-            if next_event is None:
-                logger.info("=== No next event ===")
+            if bm.project.all_docs_uploaded:
+                logger.info("=== All docs already uploaded ===")
                 return
+            else:
+                logger.info("=== All docs uploaded, updating project ===")
+                bm.project.all_docs_uploaded = datetime.now(timezone.utc)
+                uow.benchmarks.add(bm)
+                uow.flush()
 
-            publish(next_event)
+                next_event = benchmarks.get_next_event(
+                    benchmark_id=bm.id,
+                    benchmark_type=bm.benchmark_type,
+                    current_message=event,
+                )
+                if next_event is None:
+                    logger.info("=== No next event ===")
+                    return
+
+                publish(next_event)
 
 
 def create_report(
