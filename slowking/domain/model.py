@@ -76,10 +76,12 @@ class Project:
         name: str,
         document: list[Document] = [],
         eigen_project_id: int = None,  # type: ignore
+        all_docs_uploaded: datetime | None = None,
     ):
         self.name = name
         self.document = document
         self.eigen_project_id = eigen_project_id
+        self.all_docs_uploaded = all_docs_uploaded
 
     def __repr__(self):
         return f"<Project {self.name}>"

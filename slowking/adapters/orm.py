@@ -4,6 +4,7 @@ ORM module
 import logging.config
 
 import sqlalchemy as sa
+from sqlalchemy.exc import ArgumentError
 from sqlalchemy.orm import registry, relationship
 
 from slowking.domain import model
@@ -35,6 +36,7 @@ project = sa.Table(
     sa.Column("benchmark_id", sa.Integer, sa.ForeignKey("benchmark.id")),
     sa.Column("name", sa.String(255)),
     sa.Column("eigen_project_id", sa.Integer(), nullable=True),
+    sa.Column("all_docs_uploaded", sa.DateTime(), nullable=True),
 )
 
 document = sa.Table(
@@ -52,22 +54,30 @@ document = sa.Table(
 
 def start_mappers():
     logger.info("Starting ORM mappers...")
-    document_mapper = mapper_registry.map_imperatively(model.Document, document)
-    project_mapper = mapper_registry.map_imperatively(
-        model.Project,
-        project,
-        properties={
-            "document": relationship(document_mapper),
-        },
-    )
-    mapper_registry.map_imperatively(
-        model.Benchmark,
-        benchmark,
-        properties={
-            "project": relationship(
-                project_mapper,
-                uselist=False,
-            ),
-        },
-    )
-    logger.info("ORM mapping complete.")
+    # NOTE: calling bootstrap.bootstrap() will call this function
+    # and would raise an error if the mapping is already complete
+    # Both the API and the Event Handler call bootstrap.bootstrap()
+    # so for now (until a more refined approach is in place) we catch
+    # the exception and move on.
+    try:
+        document_mapper = mapper_registry.map_imperatively(model.Document, document)
+        project_mapper = mapper_registry.map_imperatively(
+            model.Project,
+            project,
+            properties={
+                "document": relationship(document_mapper),
+            },
+        )
+        mapper_registry.map_imperatively(
+            model.Benchmark,
+            benchmark,
+            properties={
+                "project": relationship(
+                    project_mapper,
+                    uselist=False,
+                ),
+            },
+        )
+        logger.info("ORM mapping complete.")
+    except ArgumentError:
+        pass
