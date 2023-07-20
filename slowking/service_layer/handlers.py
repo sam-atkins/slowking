@@ -7,6 +7,7 @@ from typing import Callable, Type
 from sqlalchemy.exc import IllegalStateChangeError, InvalidRequestError
 from sqlalchemy.orm.exc import DetachedInstanceError
 
+from slowking.adapters import notifications
 from slowking.adapters.http import EigenClient
 from slowking.adapters.report import LatencyReport
 from slowking.config import settings
@@ -221,11 +222,14 @@ def check_all_documents_uploaded(
 
 
 def create_report(
-    event: events.AllDocumentsUploaded, uow: unit_of_work.AbstractUnitOfWork
+    event: events.AllDocumentsUploaded,
+    uow: unit_of_work.AbstractUnitOfWork,
+    notifications: notifications.AbstractNotifications,
 ):
     logger.info(f"=== Called create_report with {event} ===")
     with uow:
         bm = uow.benchmarks.get_by_id(event.benchmark_id)
         logger.info(f"=== create_report bm === : {bm}")
-        LatencyReport().create(bm)
-        # TODO notify user of report generation e.g. email with report
+        report = LatencyReport().create(bm)
+        notifications.send(benchmark=bm, message=report)
+        logger.info("=== Create Report Notification sent  ===")

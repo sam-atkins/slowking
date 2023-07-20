@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 class AbstractReporter:
     @abc.abstractmethod
-    def create(self, benchmark: model.Benchmark):
+    def create(self, benchmark: model.Benchmark) -> str:
         raise NotImplementedError
 
 
@@ -26,7 +26,7 @@ class LatencyReport(AbstractReporter):
     output_filename: str = settings.OUTPUT_FILENAME
 
     @classmethod
-    def create(cls, benchmark: model.Benchmark):
+    def create(cls, benchmark: model.Benchmark) -> str:
         """
         Create report for given benchmark.
         """
@@ -51,7 +51,8 @@ class LatencyReport(AbstractReporter):
                 "Upload Time (seconds)": doc.upload_time,
             }
             fields.append({**base_info, **doc_info})
-        with open(f"{cls.output_dir}{cls.output_filename}", "w") as csv_file:
+        file_path = f"{cls.output_dir}{cls.output_filename}"
+        with open(file_path, "w") as csv_file:
             csv_writer = csv.DictWriter(
                 csv_file,
                 delimiter=",",
@@ -60,4 +61,5 @@ class LatencyReport(AbstractReporter):
             )
             csv_writer.writeheader()
             csv_writer.writerows(fields)
-        logger.info("=== LatencyReport created ===")
+        logger.info(f"=== LatencyReport {file_path} created ===")
+        return file_path

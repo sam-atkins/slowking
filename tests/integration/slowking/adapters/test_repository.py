@@ -3,7 +3,11 @@ Note these tests pass when running the entire test suite
 but do not pass when running just this module.
 The error is `UnmappedInstanceError`.
 """
+import pytest
+
 from slowking.adapters import repository
+
+pytestmark = pytest.mark.usefixtures("mappers")
 
 
 def test_get_by_id(sqlite_session_factory, benchmark):

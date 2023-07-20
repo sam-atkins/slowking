@@ -15,8 +15,6 @@ from slowking.domain import commands
 router = APIRouter(prefix=settings.API_BENCHMARK_NAMESPACE_V1_STR, tags=["benchmarks"])
 
 
-bus = bootstrap.bootstrap()
-
 logging.config.dictConfig(config.logger_dict_config())
 logger = getLogger(__name__)
 
@@ -25,6 +23,7 @@ def publish_to_bus(cmd: commands.Command):
     """
     Publishes a command to the eventbus
     """
+    bus = bootstrap.bootstrap()
     bus.handle(cmd)
 
 

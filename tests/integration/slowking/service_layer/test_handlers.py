@@ -2,11 +2,10 @@ import uuid
 from collections import defaultdict
 from datetime import datetime, timezone
 
-
 from slowking import bootstrap
 from slowking.adapters import notifications, repository
 from slowking.adapters.http import EigenClient, ProjectStruct
-from slowking.domain import commands, events
+from slowking.domain import commands, events, model
 from slowking.service_layer import unit_of_work
 
 
@@ -55,7 +54,8 @@ class FakeNotifications(notifications.AbstractNotifications):
     def __init__(self):
         self.sent = defaultdict(list)
 
-    def send(self, destination, message):
+    def send(self, benchmark: model.Benchmark, message: str):
+        destination = ["test@example.com"]
         self.sent[destination].append(message)
 
 

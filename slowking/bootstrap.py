@@ -3,7 +3,10 @@ from typing import Callable, Type
 
 from slowking.adapters import orm, redis_event_publisher
 from slowking.adapters.http import EigenClient
-from slowking.adapters.notifications import AbstractNotifications, LogNotifications
+from slowking.adapters.notifications import (
+    AbstractNotifications,
+    EmailNotifications,
+)
 from slowking.domain import commands, events
 from slowking.service_layer import handlers, messagebus, unit_of_work
 
@@ -22,7 +25,7 @@ def bootstrap(
         logger.info("Bootstrap DB and ORM setup completed")
 
     if notifications is None:
-        notifications = LogNotifications()
+        notifications = EmailNotifications()
 
     injected_command_handlers: dict[Type[commands.Command], list[Callable]] = {
         commands.CreateBenchmark: [
@@ -48,7 +51,7 @@ def bootstrap(
             lambda e: handlers.check_all_documents_uploaded(e, uow, publish),
         ],
         events.AllDocumentsUploaded: [
-            lambda e: handlers.create_report(e, uow),
+            lambda e: handlers.create_report(e, uow, notifications),
         ],
     }
 
