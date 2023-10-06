@@ -54,8 +54,6 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
     Unit of Work for SQLAlchemy
     """
 
-    # benchmarks: repository.AbstractRepository
-
     def __init__(self, session_factory=DEFAULT_SESSION_FACTORY):
         self.session_factory = session_factory
 
