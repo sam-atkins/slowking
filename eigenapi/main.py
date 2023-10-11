@@ -21,7 +21,6 @@ app = FastAPI()
 
 # this would be part of config, set on the benchmark host/target
 BENCHMARK_HOST_NAME = "eigenapi:8283"
-# SLOWKING_HOST_NAME = "slowking:8091"
 SLOWKING_HOST_NAME = "slowking-api-eventbus:8091"
 
 
@@ -70,14 +69,8 @@ async def document_uploader(
     file_names = [file.filename for file in files]
     file_qty = len(files)
 
-    # TODO not logging to stdout, why not?
     logger.info(f"Received {file_qty} files")
     logger.info(f"File names received: {file_names}")
-
-    # HACK to get around logging not working
-    print(f"{document_type_id=}")
-    print(f"Received {file_qty} files")
-    print(f"File names received: {file_names}")
 
     background_tasks.add_task(fake_document_uploader, files, document_type_id)
 

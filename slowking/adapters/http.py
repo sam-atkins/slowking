@@ -1,9 +1,5 @@
 """
 HTTP client adapter to communicate with the benchmark target instance.
-
-This uses some of the Bird client code as a starting point. Copy/paste to aid logging
-and dev, and to only bring in the functionality I need. In 'real life' would probably
-install and use ECU.
 """
 from __future__ import annotations
 
