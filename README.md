@@ -3,6 +3,7 @@
 This is a proof of concept benchmarking app/tool with an event-driven architecture.
 
 - [slowking](#slowking)
+  - [What is slowking?](#what-is-slowking)
   - [Design Principles](#design-principles)
   - [Local Dev](#local-dev)
   - [Database Migrations](#database-migrations)
@@ -18,6 +19,14 @@ This is a proof of concept benchmarking app/tool with an event-driven architectu
       - [Solution 1](#solution-1)
       - [Solution 2](#solution-2)
 
+## What is slowking?
+
+At [Eigen](https://eigentech.com/), we have a benchmarking tool called `slowbro`. This tool benchmarks latency of document upload amongst other things.
+
+In the process of learning about event driven architecture, I had the idea of adding instrumentation to an Eigen application which would send events via HTTP to a new tool that would process the events and provided a benchmark report. From `slowbro` to `slowking` 😀.
+
+In this POC repo, the slowking application is the majority of the code and in order for it to be standalone and work as a demo, the Eigen application is mocked out with a few simple endpoints for document upload.
+
 ## Design Principles
 
 - Event driven architecture
@@ -26,7 +35,7 @@ This is a proof of concept benchmarking app/tool with an event-driven architectu
   - Docker
   - k8s
 - No infrastructure provisioning. It relies on a benchmarkable Platform to already be running
-- Benchmark reports will be in CSV format
+- Benchmark reports in CSV format
 
 ## Local Dev
 
@@ -44,7 +53,6 @@ There are also various tasks in the Taskfile:
 ```shell
 task --list
 ```
-
 
 ## Database Migrations
 
@@ -117,9 +125,9 @@ An example Payload (WIP) would be:
 - ErrorStatus | ErrorOccurred
   - handlers: send_notification
 
-- get artifacts (for POC, have them locally and just use them)
-- login to instance? (mechanics, think is probably just part of creating a project)
-- create project
+- Get artifacts (for POC, have them locally rather than pulling from S3)
+- Login to instance
+- Create project
 - Upload documents
 - Doc upload started (instrumented event sent by Eigen application)
 - Doc upload completed (instrumented event sent by Eigen application)
