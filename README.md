@@ -23,7 +23,7 @@ This is a proof of concept benchmarking app/tool with an event-driven architectu
 
 At [Eigen](https://eigentech.com/), we have a benchmarking tool called `slowbro`. This tool benchmarks latency of document upload amongst other things.
 
-In the process of learning about event driven architecture, I had the idea of adding instrumentation to an Eigen application which would send events via HTTP to a new tool that would process the events and provided a benchmark report. From `slowbro` to `slowking` 😀.
+In the process of learning about event driven architecture, I had the idea of adding instrumentation to an Eigen application which would send events via HTTP to a new tool that would process the events and provide a benchmark report. From `slowbro` to `slowking` 😀.
 
 In this POC repo, the slowking application is the majority of the code and in order for it to be standalone and work as a demo, the Eigen application is mocked out with a few simple endpoints for document upload.
 
