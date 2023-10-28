@@ -42,6 +42,8 @@ In this POC repo, the slowking application is the majority of the code and in or
 The following dev tooling is used:
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- [pyenv](https://github.com/pyenv/pyenv)
+- [poetry](https://python-poetry.org/)
 - [Taskfile](https://taskfile.dev/)
 - [xh](https://github.com/ducaale/xh)
 
@@ -51,18 +53,25 @@ To get started, run
 task build && task up
 ```
 
+With the server running, the following resources are available:
+
+- OpenAPI docs for the Slowking API: http://0.0.0.0:8091/docs
+- MailHog UI: http://0.0.0.0:18025/
+
 To send an HTTP request to the application using [xh](https://github.com/ducaale/xh) to start a benchmark:
 
 ```shell
 task start
 ```
 
-The following are available:
+To install locally, run:
 
-- OpenAPI docs for the Slowking API: http://0.0.0.0:8091/docs
-- MailHog UI: http://0.0.0.0:18025/
+```shell
+# Note, this requires pyenv and poetry
+task install
+```
 
-There are also various tasks in the Taskfile:
+There are additional tasks in the Taskfile which can be listed like this:
 
 ```shell
 task --list
