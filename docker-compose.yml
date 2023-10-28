@@ -19,8 +19,6 @@ services:
       - slowking-postgres
       - slowking-redis
       - slowking-event-consumer
-    # networks:
-    #   - network_eigen_dev
 
   slowking-event-consumer:
     build: .
@@ -40,8 +38,6 @@ services:
     volumes:
       - ./slowking:/home/app/slowking
       - ./reports:/home/app/reports
-    # networks:
-    #   - network_eigen_dev
 
   slowking-redis:
     container_name: slowking-redis-broker
@@ -50,8 +46,6 @@ services:
     command: --port 63791
     ports:
       - 63791:63791
-    # networks:
-    #   - network_eigen_dev
 
   slowking-postgres:
     image: postgres:15.3
@@ -67,8 +61,6 @@ services:
       - "54322:5432"
     volumes:
       - ./postgres-data:/var/lib/postgresql/data
-    # networks:
-    #   - network_eigen_dev
 
   eigenapi:
     build:
@@ -88,11 +80,6 @@ services:
     ports:
       - "11025:1025"
       - "18025:8025"
-
-# networks:
-#   network_eigen_dev:
-#     name: eigen_dev_default
-#     external: true
 
 volumes:
   slowking-api-eventbus:
