@@ -23,35 +23,30 @@ tasks:
       - docker-compose up
 
   start:
-    desc: Make a request to the application using HTTPie to start a benchmark
+    desc: Make a request to the application using xh to start a benchmark
     cmds:
-      - http POST localhost:8091/api/v1/benchmarks/start @./tests/data/payload.json
-
-  # api-token:
-  #   desc: Make a request to the application using HTTPie to /token endpoint
-  #   cmds:
-  #     - http -v POST localhost:8001/auth/v1/token/ @./tests/data/auth.json
+      - xh POST localhost:8091/api/v1/benchmarks/start @./tests/data/payload.json
 
   api-eigen-health:
-    desc: Make a request to the Mock Eigen API health/ endpoint using HTTPie
+    desc: Make a request to the Mock Eigen API health/ endpoint using xh
     cmds:
-      - http localhost:8283/health
+      - xh localhost:8283/health
 
   api-slowking-health:
-    desc: Make a request to the slowking health/ endpoint using HTTPie
+    desc: Make a request to the slowking health/ endpoint using xh
     cmds:
-      - http localhost:8091/api/v1/health
+      - xh localhost:8091/api/v1/health
 
   api-health:
-    desc: Make requests to the /health endpoints using HTTPie
+    desc: Make requests to the /health endpoints using xh
     cmds:
       - task: api-eigen-health
       - task: api-slowking-health
 
   event:
-    desc: Make a request to the application using HTTPie with a test event
+    desc: Make a request to the application using xh with a test event
     cmds:
-      - http POST localhost:8091/api/v1/events/publish @./tests/data/event.json
+      - xh POST localhost:8091/api/v1/events/publish @./tests/data/event.json
 
   env-file:
     desc: Create .env file from .env.dev

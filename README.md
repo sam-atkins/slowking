@@ -39,13 +39,27 @@ In this POC repo, the slowking application is the majority of the code and in or
 
 ## Local Dev
 
+The following dev tooling is used:
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- [Taskfile](https://taskfile.dev/)
+- [xh](https://github.com/ducaale/xh)
+
+To get started, run
+
 ```shell
 task build && task up
 ```
 
-Following are available:
+To send an HTTP request to the application using [xh](https://github.com/ducaale/xh) to start a benchmark:
 
-- Swagger Docs for the Slowking API: http://0.0.0.0:8091/docs
+```shell
+task start
+```
+
+The following are available:
+
+- OpenAPI docs for the Slowking API: http://0.0.0.0:8091/docs
 - MailHog UI: http://0.0.0.0:18025/
 
 There are also various tasks in the Taskfile:
