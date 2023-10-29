@@ -96,22 +96,22 @@ tasks:
     cmds:
       - poetry run ruff --fix .
 
-  black:
-    desc: Run black
+  run-formatter:
+    desc: Format code using ruff (using Black formatting conventions)
     cmds:
-      - poetry run black slowking/ eigenapi/ tests/
+      - poetry run ruff format slowking/ eigenapi/ tests/
 
   fmt:
-    desc: "Formats code using ruff and black"
+    desc: "Fix linting issues and format code using ruff"
     cmds:
       - task: lint
-      - task: black
+      - task: run-formatter
 
   fmt-check:
-    desc: "Checks code formatting using ruff and black"
+    desc: "Checks code linting and formatting using ruff"
     cmds:
       - poetry run ruff check .
-      - poetry run black --check slowking/ eigenapi/ tests/
+      - poetry run ruff format --check slowking/ eigenapi/ tests/
 
   test:
     desc: Run tests (locally, not in Docker)
