@@ -214,11 +214,11 @@ class EigenClient(Session):
         Returns:
             a bool to indicate whether the error is a token expiry error
         """
-        if error.response.status_code != 401:
+        if error.response.status_code != 401:  # type: ignore
             return False
 
         try:
-            error_detail = error.response.json()["error"]["detail"]
+            error_detail = error.response.json()["error"]["detail"]  # type: ignore
         except KeyError:
             return False
 
