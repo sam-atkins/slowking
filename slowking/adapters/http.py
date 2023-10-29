@@ -214,11 +214,11 @@ class EigenClient(Session):
         Returns:
             a bool to indicate whether the error is a token expiry error
         """
-        if error.response.status_code != 401:
+        if error.response.status_code != 401:  # type: ignore
             return False
 
         try:
-            error_detail = error.response.json()["error"]["detail"]
+            error_detail = error.response.json()["error"]["detail"]  # type: ignore
         except KeyError:
             return False
 
@@ -266,11 +266,6 @@ class EigenClient(Session):
             url=url,
             data={"document_type_id": project_id},
             files=[("files", (f.name, f.read_bytes())) for f in files],
-            # headers={
-            #     "X-CSRFToken": self.csrf_token,
-            #     "Referer": f"{self.base_url_v2}api-csrf-token/",
-            # },
-            # cookies={"csrftoken": self.csrf_token},
         )
         self._raise_for_status(res)
         return res.json()

@@ -58,7 +58,9 @@ def test_get_next_event_unknown_benchmark_type():
     with pytest.raises(NotImplementedError):
         # ignoring type to test NotImplementedError
         benchmarks.get_next_event(
-            benchmark_id=1, benchmark_type="new_benchmark", current_message="fake_event"  # type: ignore # noqa E501
+            benchmark_id=1,
+            benchmark_type="new_benchmark",
+            current_message="fake_event",  # type: ignore # noqa E501
         )
 
 
