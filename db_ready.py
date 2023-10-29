@@ -16,7 +16,8 @@ def db_ready():
     for _ in range(RETRIES):
         try:
             engine = create_engine(
-                settings.SQLALCHEMY_DATABASE_URI, pool_pre_ping=True  # type: ignore
+                settings.SQLALCHEMY_DATABASE_URI,
+                pool_pre_ping=True,  # type: ignore
             )
             with engine.connect() as conn:
                 txt = text("SELECT 1")

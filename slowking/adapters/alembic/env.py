@@ -20,7 +20,8 @@ target_metadata = orm.mapper_registry.metadata
 
 # NOTE: this will overwrite the ini-file sqlalchemy.url path
 config.set_main_option(
-    "sqlalchemy.url", settings.SQLALCHEMY_DATABASE_URI  # type: ignore
+    "sqlalchemy.url",
+    settings.SQLALCHEMY_DATABASE_URI,  # type: ignore
 )
 
 
