@@ -52,7 +52,7 @@ class Settings(BaseSettings):
     SLOWKING_POSTGRES_DB: str
     SLOWKING_POSTGRES_PASSWORD: str
     SLOWKING_POSTGRES_USER: str
-    SQLALCHEMY_DATABASE_URI: Optional[PostgresDsn] = None
+    SQLALCHEMY_DATABASE_URI: Optional[str] = None
 
     @validator("SQLALCHEMY_DATABASE_URI", pre=True)
     def assemble_db_connection(cls, v: Optional[str], values: dict[str, str]) -> str:
