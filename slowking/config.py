@@ -70,9 +70,6 @@ class Settings(BaseSettings):
 
         return url
 
-    class Config:
-        case_sensitive = True
-
 
 settings = Settings()  # type: ignore
 

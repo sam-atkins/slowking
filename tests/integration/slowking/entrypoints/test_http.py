@@ -61,6 +61,7 @@ def test_update_document_endpoint_accepted_with_start_time(mock_add_task):
         "eigen_project_id": "22",
         "benchmark_host_name": "test host",
         "start_time": 123.456,
+        "end_time": None,
     }
     response = client.post("/api/v1/benchmarks/documents", json=payload)
     assert response.status_code == HTTPStatus.ACCEPTED
@@ -73,6 +74,7 @@ def test_update_document_endpoint_accepted_with_end_time(mock_add_task):
         "eigen_document_id": "11",
         "eigen_project_id": "22",
         "benchmark_host_name": "test host",
+        "start_time": None,
         "end_time": 123.456,
     }
     response = client.post("/api/v1/benchmarks/documents", json=payload)
