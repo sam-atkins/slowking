@@ -4,6 +4,7 @@ HTTP entrypoints for the Eventbus application
 import logging.config
 from http import HTTPStatus
 from logging import getLogger
+from typing import Optional
 
 from fastapi import APIRouter, BackgroundTasks, Response
 from pydantic import BaseModel
@@ -64,8 +65,8 @@ class UpdateDocumentPayload(BaseModel):
     eigen_document_id: str
     eigen_project_id: str
     benchmark_host_name: str
-    end_time: float | None  # TODO: type is a datetime timestamp
-    start_time: float | None  # TODO: type is a datetime timestamp
+    end_time: Optional[float]
+    start_time: Optional[float]
 
 
 @router.post("/documents/", status_code=HTTPStatus.ACCEPTED)

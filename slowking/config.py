@@ -2,7 +2,8 @@ from datetime import datetime, timezone
 from logging import getLogger
 from typing import Any, Optional
 
-from pydantic import BaseSettings, PostgresDsn, validator
+from pydantic import ValidationInfo, field_validator
+from pydantic_settings import BaseSettings
 
 from slowking.domain.commands import CommandChannelEnum
 from slowking.domain.events import EventChannelEnum
@@ -27,20 +28,20 @@ class Settings(BaseSettings):
     SLOWKING_REDIS_PORT: str
     REDIS_CONFIG: Optional[dict[str, Any]] = None
 
-    @validator("REDIS_CONFIG", pre=True)
-    def assemble_redis_config(cls, v: Optional[str], values: dict[str, str]) -> Any:
+    @field_validator("REDIS_CONFIG")
+    def assemble_redis_config(cls, v: Optional[str], values: ValidationInfo) -> Any:
         if isinstance(v, str):
             return v
         return {
-            "host": values.get("SLOWKING_REDIS_HOST"),
-            "port": values.get("SLOWKING_REDIS_PORT"),
+            "host": values.data.get("SLOWKING_REDIS_HOST"),
+            "port": values.data.get("SLOWKING_REDIS_PORT"),
         }
 
     REDIS_SUBSCRIBE_CHANNELS: list[str] = []
 
-    @validator("REDIS_SUBSCRIBE_CHANNELS", pre=True)
+    @field_validator("REDIS_SUBSCRIBE_CHANNELS")
     def assemble_redis_subscribe_channels(
-        cls, v: Optional[str], values: dict[str, Any]
+        cls, v: Optional[str], values: ValidationInfo
     ) -> list[str]:
         event_channels = EventChannelEnum.get_event_channels()
         cmd_channels = CommandChannelEnum.get_command_channels()
@@ -54,22 +55,20 @@ class Settings(BaseSettings):
     SLOWKING_POSTGRES_USER: str
     SQLALCHEMY_DATABASE_URI: Optional[str] = None
 
-    @validator("SQLALCHEMY_DATABASE_URI", pre=True)
-    def assemble_db_connection(cls, v: Optional[str], values: dict[str, str]) -> str:
+    @field_validator("SQLALCHEMY_DATABASE_URI")
+    def assemble_db_connection(cls, v: Optional[str], values: ValidationInfo) -> str:
         if isinstance(v, str):
             return v
-        dsn = PostgresDsn.build(
-            scheme="postgresql",
-            user=values.get("SLOWKING_POSTGRES_USER"),
-            password=values.get("SLOWKING_POSTGRES_PASSWORD"),
-            host=values.get("SLOWKING_DB_HOST", ""),
-            port=values.get("SLOWKING_DB_PORT"),
-            path=f"/{values.get('SLOWKING_POSTGRES_DB') or ''}",
-        )
-        return dsn
 
-    class Config:
-        case_sensitive = True
+        scheme = "postgresql"
+        user = values.data.get("SLOWKING_POSTGRES_USER")
+        password = values.data.get("SLOWKING_POSTGRES_PASSWORD")
+        host = values.data.get("SLOWKING_DB_HOST", "")
+        port = values.data.get("SLOWKING_DB_PORT")
+        path = f'/{values.data.get("POSTGRES_DB", "")}'
+        url = f"{scheme}://{user}:{password}@{host}:{port}{path}"
+
+        return url
 
 
 settings = Settings()  # type: ignore
