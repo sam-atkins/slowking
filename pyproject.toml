@@ -6,7 +6,7 @@ authors = ["Sam Atkins"]
 
 [tool.poetry.dependencies]
 python = "^3.11"
-fastapi = "^0.104.1"
+fastapi = "^0.110.1"
 redis = "^5.0.1"
 uvicorn = "^0.25.0"
 sqlalchemy = "^2.0.17"
